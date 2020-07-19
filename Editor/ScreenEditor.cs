@@ -131,37 +131,37 @@ namespace VioletUI {
 		}
 
 		private static bool TryGetManagerColor(int instanceID, out Color color) {
-            color = new Color(0.898f, 0.745f, 0.935f);
-            return true;
+			color = new Color(0.898f, 0.745f, 0.935f);
+			return true;
 		}
 
 		private static void DrawHierarchyItem(int instanceID, Rect rect) {
 			var gameObject = EditorUtility.InstanceIDToObject(instanceID) as GameObject;
 
-            Color violet = new Color(0.898f, 0.745f, 0.935f);
+			Color violet = new Color(0.898f, 0.745f, 0.935f);
 			float h = 0f, s = 0f, v = 0f;
 			Color.RGBToHSV(violet, out h, out s, out v);
 			Color saturatedViolet = Color.HSVToRGB(h, 1f, 1f);
-            if (gameObject == null) { return; }
+			if (gameObject == null) { return; }
 
-            if (gameObject.GetComponent<NavigationController>() != null) {
-                if (Button(rect, "Reset", "", saturatedViolet, FontStyle.Normal)) {
-									foreach (var menu in menus) {
-										menu.gameObject.SetActive(false);
-									}
-                }
-                return;
-            }
-
-            if (gameObject.GetComponent<NavigationScreen>() != null) {
-                if (Button(rect, "Edit", "", saturatedViolet, FontStyle.Normal, gameObject.activeSelf ? 2 : 1)) {
+			if (gameObject.GetComponent<NavigationController>() != null) {
+				if (Button(rect, "Reset", "", saturatedViolet, FontStyle.Normal)) {
 					foreach (var menu in menus) {
-						menu.gameObject.SetActive(false);
+						menu.gameObject.GetComponent<NavigationScreen>()?.StopEditing();
 					}
-					gameObject.SetActive(true);
-                }
-                return;
-            }
+				}
+				return;
+			}
+
+			if (gameObject.GetComponent<NavigationScreen>() != null) {
+				if (Button(rect, "Edit", "", saturatedViolet, FontStyle.Normal, gameObject.activeSelf ? 2 : 1)) {
+					foreach (var menu in menus) {
+						menu.gameObject.GetComponent<NavigationScreen>()?.StopEditing();
+					}
+					gameObject.GetComponent<NavigationScreen>().StartEditing();
+				}
+				return;
+			}
 		}
 	}
 }

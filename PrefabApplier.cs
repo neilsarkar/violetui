@@ -31,7 +31,7 @@ public class PrefabApplier : MonoBehaviour {
 	bool isAutosaving = false;
 
 	void EditorSceneManager_sceneSaved(Scene scene) {
-		if (Application.isPlaying) {return;}
+		if (Application.isPlaying) { return; }
 		if (isAutosaving) {
 			isAutosaving = false;
 			return;
@@ -48,7 +48,7 @@ public class PrefabApplier : MonoBehaviour {
 				hasChanges = true;
 			}
 		}
-        if (!hasChanges) { return; }
+		if (!hasChanges) { return; }
 
 
 		var scene = SceneManager.GetActiveScene();
