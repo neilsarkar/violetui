@@ -2,9 +2,9 @@ using System;
 using Dispatch;
 
 namespace VioletUI {
-	public class View<TState> : TidyBehaviour, IView<TState> where TState : IState {
-		public virtual TState State {get; set;}
-		public virtual TState LastState {get; set;}
+	public abstract class View<TState> : TidyBehaviour, IView<TState> where TState : IState {
+		public abstract TState State {get;}
+		public abstract TState LastState {get;}
 
 		public void OnEnable() {
 			State.OnChange += State_OnChange;
@@ -27,6 +27,15 @@ namespace VioletUI {
 		void State_OnChange() {
 			Render(State, LastState);
 		}
+
+		Dispatcher<TState> m_dispatcher;
+		protected Dispatcher<TState> dispatcher {
+			get {
+				if (m_dispatcher == null) { m_dispatcher = new Dispatcher<TState>(State, LastState); }
+				return m_dispatcher;
+			}
+		}
+
 
 		public virtual void OnShow() {}
 		public virtual void OnHide() {}
