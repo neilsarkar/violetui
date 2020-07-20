@@ -145,7 +145,7 @@ namespace VioletUI {
 			if (gameObject == null) { return; }
 
 			if (gameObject.GetComponent<NavigationController>() != null) {
-				if (Button(rect, "Reset", "", saturatedViolet, FontStyle.Normal)) {
+				if (Button(rect, "Save", "", saturatedViolet, FontStyle.Normal)) {
 					foreach (var menu in menus) {
 						menu.gameObject.GetComponent<NavigationScreen>()?.StopEditing();
 					}
