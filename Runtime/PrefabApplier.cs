@@ -18,7 +18,7 @@ using UnityEditor;
 namespace VioletUI {
 
 	[ExecuteAlways]
-	public class PrefabApplier : TidyBehaviour {
+	public class PrefabApplier : MonoBehaviour {
 		void OnDestroy() {
 			EditorSceneManager.sceneSaved -= EditorSceneManager_sceneSaved;
 		}
