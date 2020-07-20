@@ -6,9 +6,5 @@
   "unity": "2019.4",
   "author": {
     "name": "Neil Sarkar"
-  },
-  "dependencies": {
-    "com.neilsarkar.dispatch" : "https://github.com/neilsarkar/dispatch.git",
-    "com.neilsarkar.tidybehaviour" : "https://github.com/neilsarkar/tidybehaviour.git"
   }
 }
