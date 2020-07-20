@@ -16,6 +16,7 @@ namespace VioletUI {
 
 		internal override void RenderInternal(TState state, TState lastState) {
 			if (Count == lastCount) { return; }
+			if (ViewPrefab == null) { return; }
 
 			lastCount = Count;
 

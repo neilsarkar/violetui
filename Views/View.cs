@@ -7,8 +7,7 @@ namespace VioletUI {
 	public abstract class View<TState> : TidyBehaviour, IView<TState> where TState : IState {
 		public abstract TState State { get; }
 		public abstract TState LastState { get; }
-		// [NonSerialized] public int Index;
-		public int Index;
+		[NonSerialized] public int Index;
 
 		public virtual void OnShow() { }
 		public virtual void OnHide() { }
@@ -50,6 +49,9 @@ namespace VioletUI {
 		internal virtual void OnShowInternal() {}
 		internal virtual void OnHideInternal() {}
 		internal virtual void RenderInternal(TState state, TState lastState) {
+			try {
+				if (gameObject == null) {return;}
+			} catch(MissingReferenceException) { return; }
 			Render(state, lastState);
 		}
 
