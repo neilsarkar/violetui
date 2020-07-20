@@ -5,7 +5,10 @@ using UnityEditor;
 
 public class NavigationScreen : TidyBehaviour {
 #if UNITY_EDITOR
+	public static bool IsSavingPrefab;
+
 	public void StartEditing() {
+		IsSavingPrefab = false;
 		try {
 			PrefabUtility.UnpackPrefabInstance(gameObject, PrefabUnpackMode.OutermostRoot, InteractionMode.AutomatedAction);
 		} catch (ArgumentException e) {
@@ -15,6 +18,7 @@ public class NavigationScreen : TidyBehaviour {
 	}
 
 	public void StopEditing() {
+		IsSavingPrefab = true;
 		PrefabUtility.SaveAsPrefabAssetAndConnect(gameObject, $"Assets/Implementation/Menus/{name}.prefab", InteractionMode.AutomatedAction);
 		gameObject.SetActive(false);
 	}
