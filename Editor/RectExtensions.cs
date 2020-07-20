@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Utility extensions for manipulating Rect values.  //TODO: Go through this
+/// Utility extensions for manipulating Rect values.
 /// </summary>
 public static class RectExtMethods {
 	public static Rect VioletSetPosition(this Rect rect, Vector2 position) {

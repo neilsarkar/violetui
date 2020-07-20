@@ -107,7 +107,7 @@ namespace VioletUI {
 			shadowColor.a = 0.8f;
 
 			if (dot > 0) {
-				var dotRect = rect.VioletBackfillRight(rect.width - rect.height).VioletDisplaceX(1f)/*.Pad( 4f )*/;
+				var dotRect = rect.VioletBackfillRight(rect.height).VioletDisplaceX(1f);
 				var dotColor = dot == 2 ? color : Color.grey;
 
 				dotColor.a = 0.5f;

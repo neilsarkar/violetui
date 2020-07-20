@@ -21,6 +21,7 @@ namespace VioletUI {
 			try {
 				RenderInternal(State, default(TState));
 			} catch (NullReferenceException e) {
+				// TODO: decorate error with stack trace
 				UnityEngine.Debug.LogError($"VioletUI: Failed OnShow render of <color=#8d27a3>{name}</color>. Make sure you use <color=green>lastState?.foo</color> and not <color=red>lastState.foo</color>)");
 				throw e;
 			}
