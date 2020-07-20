@@ -15,7 +15,7 @@ namespace VioletUI {
 		}
 
 		internal override void RenderInternal(TState state, TState lastState) {
-			if (Items.Count == LastItems?.Count) { return; }
+			if (lastState != null && Items.Count == LastItems?.Count) { return; }
 			if (ViewPrefab == null) { return; }
 
 			RenderChildren();

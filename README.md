@@ -11,6 +11,8 @@ using Dispatch;
 [System.Serializable]
 public class UIState : State {
 	public int nice;
+	public List<string> bugs = new List<string> () { "wasp", "ant" } ;
+
 }
 ```
 
@@ -31,6 +33,7 @@ public static class UIActions {
 ```
 
 ## View
+
 ```csharp
 using VioletUI;
 
@@ -68,4 +71,32 @@ public class AddButtonView : MyBaseView {
 		dispatcher.Run(UIActions.Set(0));
 	}
 }
+```
+
+## RepeatView
+
+```csharp
+public abstract class BaseRepeatView<T> : RepeatView<UIState, T> {
+	protected override UIState State => UIStateMB.Singleton.State;
+	protected override UIState LastState => UIStateMB.Singleton.LastState;
+}
+
+public abstract class BaseChildView<T> : ChildView<UIState, T> {
+	protected override UIState State => UIStateMB.Singleton.State;
+	protected override UIState LastState => UIStateMB.Singleton.LastState;
+}
+
+public class BugsView : BaseRepeatView<string> () {
+	public override List<string> Items => State?.bugs;
+	public override List<string> LastItems => LastState?.bugs;
+}
+
+public class BugView : BaseView {
+	public override void Render(UIState state, UIState lastState) {
+		if (lastState != null && Item == LastItem) { return; }
+
+		print($"I am bug number {Index} and my name changed from {LastItem} to {Item}");
+	}
+}
+
 ```
