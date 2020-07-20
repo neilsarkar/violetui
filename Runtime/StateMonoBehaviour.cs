@@ -7,7 +7,7 @@ using Sirenix.OdinInspector;
 
 namespace VioletUI {
 	[ExecuteAlways]
-	public abstract class StateMonoBehaviour<TState> : MonoBehaviour where TState : IState {
+	public abstract class StateMonoBehaviour<TState> : TidyBehaviour where TState : IState {
 		public static StateMonoBehaviour<TState> Singleton;
 
 		public TState State;
