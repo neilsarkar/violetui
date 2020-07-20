@@ -51,9 +51,11 @@ namespace VioletUI {
 		internal virtual void OnHideInternal() {}
 		internal virtual void RenderInternal(TState state, TState lastState) {
 			try {
-				if (gameObject == null) {return;}
-			} catch(MissingReferenceException) { return; }
-			Render(state, lastState);
+				try {
+					if (gameObject == null) {return;}
+				} catch(MissingReferenceException) { return; }
+				Render(state, lastState);
+			} catch (Bail) {}
 		}
 
 #if UNITY_EDITOR
