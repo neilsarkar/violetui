@@ -11,6 +11,7 @@ namespace VioletUI {
 		static int lastCount;
 
 		internal override void OnShowInternal() {
+			base.OnShowInternal();
 			lastCount = 0;
 		}
 
@@ -26,8 +27,12 @@ namespace VioletUI {
 
 		void RenderChildren() {
 			// can't use foreach or for loop because it updates the array in place
-			while(transform.childCount > 0) {
-				DestroyImmediate(transform.GetChild(0).gameObject);
+			try {
+				while(transform.childCount > 0) {
+					DestroyImmediate(transform.GetChild(0).gameObject);
+				}
+			} catch (InvalidOperationException) {
+				return;
 			}
 
 			for(int i = 0; i < Count; i++) {
