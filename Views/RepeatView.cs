@@ -27,7 +27,7 @@ namespace VioletUI {
 		void RenderChildren() {
 			// can't use foreach or for loop because it updates the array in place
 			while(transform.childCount > 0) {
-					DestroyImmediate(transform.GetChild(0).gameObject);
+				DestroyImmediate(transform.GetChild(0).gameObject);
 			}
 
 			for(int i = 0; i < Count; i++) {

@@ -58,6 +58,7 @@ namespace VioletUI {
 #if UNITY_EDITOR
 		public void Update() {
 			if (Application.isPlaying) { return; }
+			if (State == null) { return; }
 			State.OnChange -= State_OnChange;
 			State.OnChange += State_OnChange;
 		}
