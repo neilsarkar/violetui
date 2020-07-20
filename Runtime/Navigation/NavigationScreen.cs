@@ -22,7 +22,7 @@ namespace VioletUI {
 
 		public void StopEditing() {
 			IsSavingPrefab = true;
-			PrefabUtility.SaveAsPrefabAssetAndConnect(gameObject, $"Assets/Implementation/Menus/{name}.prefab", InteractionMode.AutomatedAction);
+			PrefabUtility.SaveAsPrefabAssetAndConnect(gameObject, $"Assets/Menus/{name}.prefab", InteractionMode.AutomatedAction);
 			gameObject.SetActive(false);
 		}
 	#endif
