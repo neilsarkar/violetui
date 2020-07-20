@@ -1,6 +1,7 @@
 using System;
 using Dispatch;
 using Sirenix.OdinInspector;
+using UnityEngine;
 
 namespace VioletUI {
 	public abstract class ChildView<TState, T> : View<TState> where TState : IState {
@@ -24,5 +25,14 @@ namespace VioletUI {
 
 			base.RenderInternal(state, lastState);
 		}
+
+#if UNITY_EDITOR
+		public override void Update() {
+			base.Update();
+			if (Application.isPlaying) { return; }
+
+			parent = gameObject.GetComponentInParent<RepeatView<TState, T>>();
+		}
+#endif
 	}
 }

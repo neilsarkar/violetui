@@ -42,6 +42,7 @@ namespace VioletUI {
 
 		public void Update() {
 			if (Application.isPlaying) { return; }
+
 			Singleton = this;
 		}
 #endif
