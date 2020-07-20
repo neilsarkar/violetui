@@ -5,4 +5,8 @@ namespace VioletUI {
 		public Bail() : base("bail") {}
 		public Bail(string message) : base(message) { }
 	}
+
+	public class VioletException : Exception {
+		public VioletException(string message) : base(message) { }
+	}
 }

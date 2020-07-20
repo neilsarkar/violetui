@@ -143,6 +143,7 @@ namespace VioletUI {
 			Color saturatedViolet = Color.HSVToRGB(h, 1f, 1f);
 			if (gameObject == null) { return; }
 
+			// TODO: just find the parent of any number of Navigation Screens
 			if (gameObject.GetComponent<NavigationController>() != null) {
 				if (Button(rect, "Save", "", saturatedViolet, FontStyle.Normal)) {
 					foreach (var menu in menus) {

@@ -8,7 +8,6 @@ namespace VioletUI {
 	public abstract class View<TState> : TidyBehaviour where TState : IState {
 		protected abstract TState State { get; }
 		protected abstract TState LastState { get; }
-		[NonSerialized] public int Index;
 
 		public virtual void OnShow() { }
 		public virtual void OnHide() { }

@@ -4,22 +4,19 @@ using Dispatch;
 using UnityEngine;
 
 namespace VioletUI {
-	public abstract class RepeatView<TState> : View<TState> where TState : IState {
-		protected abstract int Count {get;}
+	public abstract class RepeatView<TState, T> : View<TState> where TState : IState {
 		public GameObject ViewPrefab;
 
-		static int lastCount;
+		public abstract IList<T> Items { get; }
+		public abstract IList<T> LastItems { get; }
 
 		internal override void OnShowInternal() {
 			base.OnShowInternal();
-			lastCount = 0;
 		}
 
 		internal override void RenderInternal(TState state, TState lastState) {
-			if (Count == lastCount) { return; }
+			if (Items.Count == LastItems?.Count) { return; }
 			if (ViewPrefab == null) { return; }
-
-			lastCount = Count;
 
 			RenderChildren();
 			base.RenderInternal(state, lastState);
@@ -35,14 +32,10 @@ namespace VioletUI {
 				return;
 			}
 
-			for(int i = 0; i < Count; i++) {
+			for (int i = 0; i < Items.Count; i++) {
 				var child = Instantiate(ViewPrefab, transform);
-				var view = child.GetComponent<View<TState>>();
-				if (view == null) {
-					Debug.LogWarning($"VioletUI: child {child.name} of {name} does not have a component that inherits from View. Make sure a View component is added.");
-					return;
-				}
-				view.Index = i;
+				var view = child.GetComponent<ChildView<TState, T>>();
+				if (view == null) {continue;}
 				view.RenderInternal(State, default(TState));
 			}
 		}
