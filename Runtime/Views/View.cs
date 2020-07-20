@@ -5,9 +5,9 @@ using UnityEngine;
 
 namespace VioletUI {
 	[ExecuteAlways]
-	public abstract class View<TState> : TidyBehaviour, IView<TState> where TState : IState {
-		public abstract TState State { get; }
-		public abstract TState LastState { get; }
+	public abstract class View<TState> : TidyBehaviour where TState : IState {
+		protected abstract TState State { get; }
+		protected abstract TState LastState { get; }
 		[NonSerialized] public int Index;
 
 		public virtual void OnShow() { }

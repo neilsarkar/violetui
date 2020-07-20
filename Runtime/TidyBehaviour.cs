@@ -29,18 +29,6 @@ namespace VioletUI {
 					field.SetValue(this, null);
 				}
 			}
-
-			foreach (PropertyInfo property in this.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)) {
-				Type fieldType = property.PropertyType;
-
-				if (typeof(IList).IsAssignableFrom(fieldType)) {
-					IList list = property.GetValue(this) as IList;
-					list?.Clear();
-				} else if (typeof(IDictionary).IsAssignableFrom(fieldType)) {
-					IDictionary dictionary = property.GetValue(this) as IDictionary;
-					dictionary?.Clear();
-				}
-			}
 		}
 	}
 }
