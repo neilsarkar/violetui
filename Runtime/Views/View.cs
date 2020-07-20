@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace VioletUI {
 	[ExecuteAlways]
-	public abstract class View<TState> : MonoBehaviour, IView<TState> where TState : IState {
+	public abstract class View<TState> : TidyBehaviour, IView<TState> where TState : IState {
 		public abstract TState State { get; }
 		public abstract TState LastState { get; }
 		[NonSerialized] public int Index;

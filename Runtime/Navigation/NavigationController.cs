@@ -1,5 +1,6 @@
 using UnityEngine;
 
-public class NavigationController : MonoBehaviour {
-
+namespace VioletUI {
+	public class NavigationController : TidyBehaviour {
+	}
 }

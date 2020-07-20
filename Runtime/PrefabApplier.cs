@@ -15,49 +15,52 @@ using UnityEditor;
 /// It does this by hooking into the scene save event, so when the designer saves the scene
 /// all the prefab overrides will be automatically applied.
 /// </summary>
-[ExecuteAlways]
-public class PrefabApplier : MonoBehaviour {
-	void OnDestroy() {
-		EditorSceneManager.sceneSaved -= EditorSceneManager_sceneSaved;
-	}
+namespace VioletUI {
 
-	// tried this in Awake and OnDestroy but apparently these get blown away
-	// when the project recompiles sooo why not here!
-	void Update() {
-		EditorSceneManager.sceneSaved -= EditorSceneManager_sceneSaved;
-		EditorSceneManager.sceneSaved += EditorSceneManager_sceneSaved;
-	}
-
-	bool isAutosaving = false;
-
-	void EditorSceneManager_sceneSaved(Scene scene) {
-		if (Application.isPlaying) { return; }
-		if (isAutosaving) {
-			isAutosaving = false;
-			return;
+	[ExecuteAlways]
+	public class PrefabApplier : TidyBehaviour {
+		void OnDestroy() {
+			EditorSceneManager.sceneSaved -= EditorSceneManager_sceneSaved;
 		}
-		UpdatePrefabs();
-	}
 
-	[Button, GUIColor(0.898f, 0.745f, 0.935f)]
-	public void UpdatePrefabs() {
-		bool hasChanges = false;
-		foreach (Transform child in transform) {
-			if (PrefabUtility.HasPrefabInstanceAnyOverrides(child.gameObject, false)) {
-				PrefabUtility.ApplyPrefabInstance(child.gameObject, InteractionMode.AutomatedAction);
-				hasChanges = true;
+		// tried this in Awake and OnDestroy but apparently these get blown away
+		// when the project recompiles sooo why not here!
+		void Update() {
+			EditorSceneManager.sceneSaved -= EditorSceneManager_sceneSaved;
+			EditorSceneManager.sceneSaved += EditorSceneManager_sceneSaved;
+		}
+
+		bool isAutosaving = false;
+
+		void EditorSceneManager_sceneSaved(Scene scene) {
+			if (Application.isPlaying) { return; }
+			if (isAutosaving) {
+				isAutosaving = false;
+				return;
 			}
+			UpdatePrefabs();
 		}
-		if (!hasChanges) { return; }
+
+		[Button, GUIColor(0.898f, 0.745f, 0.935f)]
+		public void UpdatePrefabs() {
+			bool hasChanges = false;
+			foreach (Transform child in transform) {
+				if (PrefabUtility.HasPrefabInstanceAnyOverrides(child.gameObject, false)) {
+					PrefabUtility.ApplyPrefabInstance(child.gameObject, InteractionMode.AutomatedAction);
+					hasChanges = true;
+				}
+			}
+			if (!hasChanges) { return; }
 
 
-		var scene = SceneManager.GetActiveScene();
-		EditorSceneManager.MarkSceneDirty(scene);
-		isAutosaving = true;
-		EditorSceneManager.sceneSaved -= EditorSceneManager_sceneSaved;
-		EditorSceneManager.SaveScene(scene);
-		EditorSceneManager.sceneSaved += EditorSceneManager_sceneSaved;
-		isAutosaving = false;
+			var scene = SceneManager.GetActiveScene();
+			EditorSceneManager.MarkSceneDirty(scene);
+			isAutosaving = true;
+			EditorSceneManager.sceneSaved -= EditorSceneManager_sceneSaved;
+			EditorSceneManager.SaveScene(scene);
+			EditorSceneManager.sceneSaved += EditorSceneManager_sceneSaved;
+			isAutosaving = false;
+		}
 	}
+	#endif
 }
-#endif
