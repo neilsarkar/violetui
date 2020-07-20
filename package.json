@@ -10,5 +10,5 @@
   "dependencies": {
     "com.neilsarkar.dispatch" : "0.1.0",
     "com.neilsarkar.tidybehaviour" : "0.1.0"
-  },
+  }
 }
