@@ -1,0 +1,16 @@
+{
+    "name": "NeilSarkar.VioletUI.Runtime",
+    "references": [
+        "GUID:f45ce7fd93a224eaeb8f8bc00fa6f740",
+        "GUID:8e3dba6773ea84ec89c8bb46293c6471"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
