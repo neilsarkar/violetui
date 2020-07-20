@@ -77,9 +77,8 @@ namespace VioletUI {
 
 			return style;
 		}
-
 		private static bool Button(Rect rect, string label, string tooltip, Color color, FontStyle fontStyle = FontStyle.Normal, int dot = 0, int i = 0, int n = 1) {
-			rect = rect.BackfillRight(BUTTON_WIDTH);
+			rect = rect.VioletBackfillRight(BUTTON_WIDTH);
 
 			GUIStyle style = null;
 
@@ -108,20 +107,20 @@ namespace VioletUI {
 			shadowColor.a = 0.8f;
 
 			if (dot > 0) {
-				var dotRect = rect.BackfillRight(rect.height).DisplaceX(1f)/*.Pad( 4f )*/;
+				var dotRect = rect.VioletBackfillRight(rect.width - rect.height).VioletDisplaceX(1f)/*.Pad( 4f )*/;
 				var dotColor = dot == 2 ? color : Color.grey;
 
 				dotColor.a = 0.5f;
 
 				GUI.Box(dotRect, GUIContent.none);
-				EditorGUI.DrawRect(dotRect.Pad(3f).DisplaceX(-1f), dotColor);
+				EditorGUI.DrawRect(dotRect.VioletPad(3f).VioletDisplaceX(-1f), dotColor);
 
 			}
 
-			rect = rect.SetWidth(3f).DisplaceX(4f).PadVertical(1f);
+			rect = rect.VioletSetWidth(3f).VioletDisplaceX(4f).VioletPadVertical(1f);
 
-			EditorGUI.DrawRect(rect.ExtrudeLeft(1f), shadowColor);
-			EditorGUI.DrawRect(rect.ExtrudeRight(1f), shadowColor);
+			EditorGUI.DrawRect(rect.VioletExtrudeLeft(1f), shadowColor);
+			EditorGUI.DrawRect(rect.VioletExtrudeRight(1f), shadowColor);
 
 			color.a = 0.5f;
 
