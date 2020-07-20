@@ -1,3 +1,5 @@
-public class NavigationController : TidyBehaviour {
+using UnityEngine;
+
+public class NavigationController : MonoBehaviour {
 
 }

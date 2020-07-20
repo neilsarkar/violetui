@@ -1,9 +1,10 @@
 using System;
+using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-public class NavigationScreen : TidyBehaviour {
+public class NavigationScreen : MonoBehaviour {
 #if UNITY_EDITOR
 	public static bool IsSavingPrefab;
 

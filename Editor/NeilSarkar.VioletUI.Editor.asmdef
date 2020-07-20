@@ -1,8 +1,7 @@
 {
     "name": "NeilSarkar.VioletUI.Editor.asmdef",
     "references": [
-        "GUID:6f301220edcc84749a65b36e4025ea3a",
-        "GUID:f45ce7fd93a224eaeb8f8bc00fa6f740"
+        "GUID:6f301220edcc84749a65b36e4025ea3a"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
