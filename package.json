@@ -8,7 +8,7 @@
     "name": "Neil Sarkar"
   },
   "dependencies": {
-    "com.neilsarkar.dispatch" : "0.1.0",
-    "com.neilsarkar.tidybehaviour" : "0.1.0"
+    "com.neilsarkar.dispatch" : "https://github.com/neilsarkar/dispatch.git",
+    "com.neilsarkar.tidybehaviour" : "https://github.com/neilsarkar/tidybehaviour.git"
   }
 }
