@@ -7,7 +7,7 @@ using Sirenix.OdinInspector;
 
 namespace VioletUI {
 	[ExecuteAlways]
-	public abstract class StateMonoBehaviour<TState> : TidyBehaviour where TState : IState {
+	public abstract class StateMonoBehaviour<TState> : TidyBehaviour where TState : class, IState {
 		public static StateMonoBehaviour<TState> Singleton;
 
 		public TState State;
@@ -24,23 +24,38 @@ namespace VioletUI {
 			}
 		}
 
-		public void Awake() {
+		public class View : View<TState> {
+			protected override TState State => Singleton?.State;
+			protected override TState LastState => Singleton?.LastState;
+		}
+
+		public abstract class RepeatView<T> : RepeatView<TState, T> {
+			protected override TState State => Singleton?.State;
+			protected override TState LastState => Singleton?.LastState;
+		}
+
+		public abstract class ChildView<T> : ChildView<TState, T> {
+			protected override TState State => Singleton?.State;
+			protected override TState LastState => Singleton?.LastState;
+		}
+
+		void Awake() {
 			Singleton = this;
 			CopyState();
 		}
 
 #if UNITY_EDITOR
-		public void OnValidate() {
+		void OnValidate() {
 			Render();
 		}
 
 		[Button, GUIColor(0.898f, 0.745f, 0.935f)]
-		public void Render() {
+		void Render() {
 			State.TriggerChange();
 			CopyState();
 		}
 
-		public void Update() {
+		void Update() {
 			if (Application.isPlaying) { return; }
 
 			Singleton = this;
