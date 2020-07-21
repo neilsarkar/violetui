@@ -9,7 +9,8 @@ namespace VioletUI {
 		protected T Item => parent?.Items == null || parent.Items.Count <= Index ? default(T) : parent.Items[Index];
 		protected T LastItem => LastState == null || parent?.LastItems == null || parent.LastItems.Count <= Index ? default(T) : parent.LastItems[Index];
 
-		protected virtual bool ShouldRender(T item, T lastItem) { return true; }
+		protected virtual void Render(T item, int index, TState state) {}
+		protected virtual bool IsDirty(T item, T lastItem) { return true; }
 
 		RepeatView<TState, T> parent;
 
@@ -21,10 +22,16 @@ namespace VioletUI {
 		}
 
 		internal override void RenderInternal(TState state, TState lastState) {
-			if (parent == null || parent.Items == null) { return; }
-			if (lastState != null && !ShouldRender(Item, LastItem)) { return; }
-
 			base.RenderInternal(state, lastState);
+			Render(Item, Index, state);
+		}
+
+		internal override bool IsDirtyInternal(TState state, TState lastState) {
+			base.IsDirtyInternal(state, lastState);
+			if (parent == null || parent.Items == null) { throw new Bail(); }
+			if (!IsDirty(Item, LastItem)) { throw new Bail(); }
+
+			return true;
 		}
 
 #if UNITY_EDITOR

@@ -1,0 +1,19 @@
+hello world
+
+repeat view with text
+	* add item
+	* remove item
+	* change all items
+	* enter playmode, make changes, come back out
+
+prefab autopacking
+	* creates prefab if it doesn't exist
+	* allows reordering and saves to prefab
+
+version control
+	* scene changes when
+
+new screen
+	* create new screen
+	* hook up new hello world
+	* hook up new repeat view

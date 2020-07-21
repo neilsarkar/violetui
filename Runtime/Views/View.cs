@@ -9,34 +9,28 @@ namespace VioletUI {
 		protected abstract TState State { get; }
 		protected abstract TState LastState { get; }
 
-		public virtual void OnShow() { }
-		public virtual void OnHide() { }
-		public virtual bool ShouldRender(TState state, TState lastState) { return true; }
-		public virtual void Render(TState state, TState lastState) { }
-
-		public void OnEnable() {
-			if (State == null) { if (Application.isPlaying) { Debug.LogWarning($"State is null in {name} OnEnable"); } return; }
-			State.OnChange += State_OnChange;
-			OnShowInternal();
-			OnShow();
-			try {
-				RenderInternal(State, default(TState));
-			} catch (NullReferenceException e) {
-				UnityEngine.Debug.LogError($"VioletUI: failed OnShow render of <color=#8d27a3>{name}</color> with null lastState. Make sure you use <color=green>lastState?.foo</color> and not <color=red>lastState.foo</color>)");
-				ExceptionDispatchInfo.Capture(e).Throw();
-			}
-		}
-
-		public void OnDisable() {
-			if (State == null) { if (Application.isPlaying) { Debug.LogWarning($"State is null in {name} OnDisable"); } return; }
-			State.OnChange -= State_OnChange;
-			OnHideInternal();
-			OnHide();
-		}
-
-		void State_OnChange() {
-			RenderInternal(State, LastState);
-		}
+		/// <summary>
+		/// OnShow is called when the gameObject becomes active in editor or playmode
+		/// </summary>
+		protected virtual void OnShow() { }
+		/// <summary>
+		/// OnHide is called when the gameObject becomes inactive in editor or playmode
+		/// </summary>
+		protected virtual void OnHide() { }
+		/// <summary>
+		/// ShouldRender is used to short circuit expensive render calls by focusing on parts of the state you care about.
+		///
+		/// return `false` to avoid rendering
+		/// </summary>
+		/// <param name="state">current value of state</param>
+		/// <param name="lastState">value of state prior to the action that triggered this render call</param>
+		/// <returns></returns>
+		protected virtual bool IsDirty(TState state, TState lastState) { return true; }
+		/// <summary>
+		/// Override Render to update referenced gameobjects with fields of the changed state.
+		/// </summary>
+		/// <param name="state"></param>
+		protected virtual void Render(TState state) { }
 
 		Dispatcher<TState> m_dispatcher;
 		protected Dispatcher<TState> dispatcher {
@@ -49,16 +43,67 @@ namespace VioletUI {
 		// Internal methods are so that callers don't have to remember to call base. at the beginning of their implementations
 		internal virtual void OnShowInternal() {}
 		internal virtual void OnHideInternal() {}
+		internal virtual bool IsDirtyInternal(TState state, TState lastState) {
+			if (!IsDirty(state, lastState)) { throw new Bail(); }
+			return true;
+		}
 		internal virtual void RenderInternal(TState state, TState lastState) {
 			try {
-				if (gameObject == null) {return;}
-			} catch(MissingReferenceException) { return; }
+				if (gameObject == null) {
+					Warn($"RenderInternal | gameObject was null");
+					throw new Bail();
+				}
+			} catch(MissingReferenceException) {
+				Warn($"RenderInternal | MissingReferenceException when trying to access gameObject");
+				throw new Bail();
+			}
 
-			if (lastState != null && !ShouldRender(state, lastState)) { return; }
+			if (lastState != null) {
+				if (!IsDirtyInternal(state, lastState) ) { throw new Bail(); }
+			}
 
+			Render(state);
+		}
+
+		void RenderWrapper(TState state, TState lastState) {
 			try {
-				Render(state, lastState);
-			} catch (Bail) {}
+				RenderInternal(state, lastState);
+			} catch (Bail) {
+				try {
+					Verbose($"{gameObject.name} bailed from render");
+				} catch (MissingReferenceException) {}
+			}
+		}
+
+		void State_OnChange() {
+			RenderWrapper(State, LastState);
+		}
+
+		void OnEnable() {
+			if (State == null) { if (Application.isPlaying) { Warn($"State is null in {name} OnEnable"); } return; }
+			State.OnChange += State_OnChange;
+			OnShowInternal();
+			OnShow();
+			RenderWrapper(State, default(TState));
+		}
+
+		void OnDisable() {
+			if (State == null) { if (Application.isPlaying) { Warn($"State is null in {name} OnDisable"); } return; }
+			State.OnChange -= State_OnChange;
+			OnHideInternal();
+			OnHide();
+		}
+
+		void Warn(string msg) {
+#if VIOLETDEV
+			UnityEngine.Debug.LogWarning(msg);
+#endif
+		}
+
+		void Verbose(string msg) {
+#if VIOLETDEV && VIOLET_VERBOSE
+			UnityEngine.Debug.Log(msg);
+#endif
 		}
 
 #if UNITY_EDITOR

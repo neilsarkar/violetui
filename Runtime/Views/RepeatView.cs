@@ -10,16 +10,18 @@ namespace VioletUI {
 		public abstract IList<T> Items { get; }
 		public abstract IList<T> LastItems { get; }
 
-		internal override void OnShowInternal() {
-			base.OnShowInternal();
+		internal override void RenderInternal(TState state, TState lastState) {
+			base.RenderInternal(state, lastState);
+
+			if (!IsDirtyInternal(state, lastState)) { return; }
+			RenderChildren();
 		}
 
-		internal override void RenderInternal(TState state, TState lastState) {
-			if (lastState != null && Items.Count == LastItems?.Count) { return; }
-			if (ViewPrefab == null) { return; }
-
-			RenderChildren();
-			base.RenderInternal(state, lastState);
+		internal override bool IsDirtyInternal(TState state, TState lastState) {
+			base.IsDirtyInternal(state, lastState);
+			if (lastState != null && Items.Count == LastItems?.Count) { throw new Bail(); }
+			if (ViewPrefab == null) { throw new Bail(); }
+			return true;
 		}
 
 		void RenderChildren() {
