@@ -1,19 +1,16 @@
 # Violet UI
 
-State-based rendering with live updates in the Unity Editor.
-
-## States
-
-Use states to represent the data of your UI.
+Declarative state-based rendering with live updates in the Unity Editor.
 
 ```csharp
+// Represent your UI state with any serializable class
 [System.Serializable]
 public class UIState : Dispatch.State {
 	public int hello;
 	public List<string> animals = new List<string> () { "tiger", "otter" } ;
 }
 
-// Attach this to a game object to get a singleton state reference that allows you to trigger renders by editing values in Editor
+// Attach this to a game object and change fields in the Editor to trigger view renders
 public class UIStateMB : VioletUI.StateMonoBehaviour<UIState> {
 	protected override void CopyState() {
 		if (LastState == null) LastState = new UIState();
@@ -21,61 +18,81 @@ public class UIStateMB : VioletUI.StateMonoBehaviour<UIState> {
 	}
 }
 
-// Add this to a game object anywhere in the hierarchy to render when state changes
-public class HelloView : VioletUI.View<UIState> {
-	// Tell the view where to find your state
-	protected override UIState State => UIStateMB.Singleton.State;
-	protected override UIState LastState => UIStateMB.Singleton.LastState;
-
-	public override void Render(UIState state, UIState lastState) {
+// Attach this to a game object anywhere in the hierarchy to render when the state changes
+public class HelloView : UIStateMB.View {
+	protected override void Render(UIState state) {
 		print($"hello is now {state.hello}");
 	}
 }
-
 ```
 
 ## Views
 
-Views are subscribed to state changes and will render by default on each state change.
-
-I recommend creating base views to avoid specifying the state every time.
-
-```csharp
-public class BaseView : VioletUI.View<UIState> {
-	protected override UIState State => UIStateMB.Singleton.State;
-	protected override UIState LastState => UIStateMB.Singleton.LastState;
-}
-```
+Views are subscribed to state changes - they will render when you change a value in the Unity Editor or dispatch an  [`Action`](#actions).
 
 ### Performant Rendering
 
-You can choose which state changes will cause a re-render.
+Define an `IsDirty` check to choose which state changes will cause a render.
 
 ```csharp
 public class HelloView : BaseView {
-	public override void Render(UIState state, UIState lastState) {
-		// some expensive rendering
+	// IsDirty lets you compare the current state to the state before the most recent change
+	public override bool IsDirty(UIState state, UIState lastState) {
+		return state.hello != lastState.hello;
 	}
 
-	// Render code is not called unless state.hello changes
-	public override bool ShouldRender(UIState state, UIState lastState) {
-		return state.hello != lastState.hello;
+	// Render will not be called unless IsDirty returns true
+	protected override void Render(UIState state) {
+		ExpensiveRenderMethod();
+	}
+}
+```
+
+### Repeat View
+
+To render a collection of items (for e.g. a player's inventory), you can use `RepeatView` and `ChildView`
+
+In your `RepeatView`, define public properties an `IList` to render the items from.
+
+```csharp
+public class AnimalsView : UIStateMB.RepeatView<string> () {
+	public override List<string> Items => State?.animals;
+	public override List<string> LastItems => LastState?.animals;
+}
+```
+
+You can now attach this to a gameObject and it will let you select a prefab. This example will instantiate that prefab once for each animal in the list.
+
+You can add a `ChildView` to the prefab if you want.
+
+```csharp
+public class AnimalView : UIStateMB.ChildView<string> {
+	// ChildView has access to its element and index in the RepeatView collection
+	protected override void Render(string animal, int index, UIState state) {
+		print($"I am animal number {index} and my name is {animal}");
+	}
+
+	// ChildView can determine whether it should render based on its element.
+	protected override bool IsDirty(string animal, string lastAnimal) {
+		return animal != lastAnimal;
 	}
 }
 ```
 
 ## Actions
 
-Define actions to update your state. Firing an action triggers re-rendering.
+Updating the state is decoupled from the UI hierarchy using actions.
 
 ```csharp
 using System;
 
 public static class UIActions {
+	// define actions quickly with this one line shorthand
 	public static Action<UIState> IncrementHello => state => {
 		state.hello++;
 	}
 
+	// works with any number of arguments
 	public static Action<UIState> SetHello(int hello) => state => {
 		state.hello = hello;
 	}
@@ -84,21 +101,25 @@ public static class UIActions {
 
 ### Dispatching actions
 
-You can dispatch actions from any method in a View.
+In a View, you can dispatch from any method.
 
 ```csharp
 public class IncrementView : BaseView {
-	public override void OnShow() {
+	protected override void OnShow() {
 		dispatcher.Run(UIActions.Increment);
 	}
 
-	public override void OnHide() {
+	protected override void OnHide() {
 		dispatcher.Run(UIActions.SetHello(0));
+	}
+
+	public void MyAction() {
+		dispatcher.Run(UIActions.SetHello(66));
 	}
 }
 ```
 
-Outside of a View you can use the singleton's dispatcher.
+Outside of a View, you can use the dispatcher on the singleton.
 
 ```csharp
 public class MyButton : UnityEngine.UI.Button {
@@ -108,43 +129,3 @@ public class MyButton : UnityEngine.UI.Button {
 }
 ```
 
-## RepeatView
-
-To render a list of items (for e.g. a player's inventory) you can use `RepeatView` and `ChildView`.
-
-First you'll want to create the base views
-
-```csharp
-public abstract class BaseRepeatView<T> : RepeatView<UIState, T> {
-	protected override UIState State => UIStateMB.Singleton.State;
-	protected override UIState LastState => UIStateMB.Singleton.LastState;
-}
-
-public abstract class BaseChildView<T> : ChildView<UIState, T> {
-	protected override UIState State => UIStateMB.Singleton.State;
-	protected override UIState LastState => UIStateMB.Singleton.LastState;
-}
-```
-
-In your `RepeatView`, expose public properties for an `IList` to render the items from.
-
-```csharp
-public class AnimalsView : BaseRepeatView<string> () {
-	public override List<string> Items => State?.animals;
-	public override List<string> LastItems => LastState?.animals;
-}
-```
-
-In your `ChildView`, you can now reference the `Index`, `Item` and `LastItem` that you are rendering.
-
-```csharp
-public class AnimalView : BaseChildView<string> {
-	public override void Render(UIState state, UIState lastState) {
-		print($"I am animal number {Index} and my name changed from {LastItem} to {Item}");
-	}
-
-	public override bool ShouldRender(string animal, string lastAnimal) {
-		return animal != lastAnimal;
-	}
-}
-```
