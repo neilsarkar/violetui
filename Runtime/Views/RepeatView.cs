@@ -4,7 +4,7 @@ using Dispatch;
 using UnityEngine;
 
 namespace VioletUI {
-	public abstract class RepeatView<TState, T> : View<TState> where TState : IState {
+	public abstract class RepeatView<TState, T> : View<TState> where TState : class, IState {
 		public GameObject ViewPrefab;
 
 		public abstract IList<T> Items { get; }

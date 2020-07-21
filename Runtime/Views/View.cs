@@ -5,12 +5,13 @@ using UnityEngine;
 
 namespace VioletUI {
 	[ExecuteAlways]
-	public abstract class View<TState> : TidyBehaviour where TState : IState {
+	public abstract class View<TState> : TidyBehaviour where TState : class, IState {
 		protected abstract TState State { get; }
 		protected abstract TState LastState { get; }
 
 		public virtual void OnShow() { }
 		public virtual void OnHide() { }
+		public virtual bool ShouldRender(TState state, TState lastState) { return true; }
 		public virtual void Render(TState state, TState lastState) { }
 
 		public void OnEnable() {
@@ -50,9 +51,12 @@ namespace VioletUI {
 		internal virtual void OnHideInternal() {}
 		internal virtual void RenderInternal(TState state, TState lastState) {
 			try {
-				try {
-					if (gameObject == null) {return;}
-				} catch(MissingReferenceException) { return; }
+				if (gameObject == null) {return;}
+			} catch(MissingReferenceException) { return; }
+
+			if (lastState != null && !ShouldRender(state, lastState)) { return; }
+
+			try {
 				Render(state, lastState);
 			} catch (Bail) {}
 		}

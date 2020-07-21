@@ -4,10 +4,12 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace VioletUI {
-	public abstract class ChildView<TState, T> : View<TState> where TState : IState {
+	public abstract class ChildView<TState, T> : View<TState> where TState : class, IState {
 		protected int Index => transform.GetSiblingIndex();
 		protected T Item => parent?.Items == null || parent.Items.Count <= Index ? default(T) : parent.Items[Index];
 		protected T LastItem => LastState == null || parent?.LastItems == null || parent.LastItems.Count <= Index ? default(T) : parent.LastItems[Index];
+
+		protected virtual bool ShouldRender(T item, T lastItem) { return true; }
 
 		RepeatView<TState, T> parent;
 
@@ -19,9 +21,8 @@ namespace VioletUI {
 		}
 
 		internal override void RenderInternal(TState state, TState lastState) {
-			if (parent == null || parent.Items == null) {
-				return;
-			}
+			if (parent == null || parent.Items == null) { return; }
+			if (lastState != null && !ShouldRender(Item, LastItem)) { return; }
 
 			base.RenderInternal(state, lastState);
 		}
