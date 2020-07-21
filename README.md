@@ -1,6 +1,6 @@
 # Violet UI
 
-Declarative state-based rendering with live updates in the Unity Editor.
+Declarative rendering with live updates in the Unity Editor.
 
 ```csharp
 // Represent your UI state with any serializable class
