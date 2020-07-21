@@ -37,7 +37,7 @@ Define an `IsDirty` check to choose which state changes will cause a render.
 ```csharp
 public class HelloView : BaseView {
 	// IsDirty lets you compare the current state to the state before the most recent change
-	public override bool IsDirty(UIState state, UIState lastState) {
+	protected override bool IsDirty(UIState state, UIState lastState) {
 		return state.hello != lastState.hello;
 	}
 
@@ -67,12 +67,10 @@ You can add a `ChildView` to the prefab if you want.
 
 ```csharp
 public class AnimalView : UIStateMB.ChildView<string> {
-	// ChildView has access to its element and index in the RepeatView collection
 	protected override void Render(string animal, int index, UIState state) {
 		print($"I am animal number {index} and my name is {animal}");
 	}
 
-	// ChildView can determine whether it should render based on its element.
 	protected override bool IsDirty(string animal, string lastAnimal) {
 		return animal != lastAnimal;
 	}
