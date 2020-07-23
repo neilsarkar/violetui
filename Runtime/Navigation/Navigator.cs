@@ -189,12 +189,24 @@ namespace VioletUI {
 			}
 		}
 
-		public void FinishEditing() {
-			PrefabUtility.SaveAsPrefabAssetAndConnect(EditingScreen.gameObject, $"Assets/Menus/{EditingScreen.name}.prefab", InteractionMode.AutomatedAction);
-
-			EditingScreen.gameObject.SetActive(false);
-			EditingScreen = null;
+		public void FinishEditing(Screen screen = null) {
+			if (EditingScreen == null) { EditingScreen = gameObject.GetComponentInChildren<Screen>(); }
+			if (screen == null) { screen = EditingScreen; }
+			PrefabUtility.SaveAsPrefabAssetAndConnect(screen.gameObject, $"Assets/Menus/{screen.name}.prefab", InteractionMode.AutomatedAction);
+			screen.gameObject.SetActive(false);
+			if (screen == EditingScreen) { EditingScreen = null; } ;
 			homeScreen = originalHomeScreen;
+		}
+
+		public void AddScreen() {
+			var gameObject = new GameObject("Rename Me");
+			var screen = gameObject.AddComponent<Screen>();
+			var canvas = gameObject.AddComponent<Canvas>();
+
+			gameObject.transform.parent = transform;
+			gameObject.transform.position = new Vector3(0,0,0);
+			canvas.renderMode = worldCamera == null ? RenderMode.ScreenSpaceOverlay : RenderMode.ScreenSpaceCamera;
+			EditingScreen = screen;
 		}
 #endif
 	}

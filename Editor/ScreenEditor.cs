@@ -26,15 +26,6 @@ namespace VioletUI {
 			saturatedViolet = Color.HSVToRGB(h, 1f, 1f);
 		}
 
-		[MenuItem("GameObject/Create Screen", false, 0)]
-		static void CreateScreen() {
-			var gameObject = UnityEditor.Selection.activeGameObject;
-			if (gameObject.GetComponent<Navigator>() == null)  {
-				throw new VioletException($"Unable to create screen child of {gameObject.name} - try adding a Navigator component to {gameObject.name} first.");
-			}
-			Debug.Log("nice");
-		}
-
 		static void DrawHierarchyItem(int instanceID, Rect rect) {
 			var gameObject = EditorUtility.InstanceIDToObject(instanceID) as GameObject;
 			if (gameObject == null) { return; }
@@ -53,10 +44,14 @@ namespace VioletUI {
 		}
 
 		static void DrawNavigator(Navigator navigator, Rect rect) {
-			if (navigator.EditingScreen == null) {return;}
-
-			if (Button(rect, "Save", true)) {
-				navigator.FinishEditing();
+			if (navigator.EditingScreen == null) {
+				if (Button(rect, "Add")) {
+					navigator.AddScreen();
+				}
+			} else if (navigator.transform.childCount > 1) {
+				if (Button(rect, "Save", true)) {
+					navigator.FinishEditing();
+				}
 			}
 		}
 
@@ -69,7 +64,7 @@ namespace VioletUI {
 					throw new VioletException($"Tried to edit {screen.name} without a Navigator. Try adding a Navigator component to {screen.transform.parent.name}");
 				}
 				if (screen.isActiveAndEnabled) {
-					navigator.FinishEditing();
+					navigator.FinishEditing(screen);
 				} else {
 					navigator.Edit(screen);
 				}
