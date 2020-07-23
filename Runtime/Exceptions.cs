@@ -9,4 +9,8 @@ namespace VioletUI {
 	public class VioletException : Exception {
 		public VioletException(string message) : base(message) { }
 	}
+
+	public class VioletEnumException : VioletException {
+		public VioletEnumException(string message) : base(message) { }
+	}
 }

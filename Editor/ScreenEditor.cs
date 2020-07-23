@@ -9,159 +9,93 @@ using System.Collections.Generic;
 namespace VioletUI {
 	//run this class when unity opens
 	[InitializeOnLoad]
-	public class ScreenEditor {
-
-		//width of inspector buttons
-		private const float BUTTON_WIDTH = 60f;
+	public static class ScreenEditor {
 
 		//where to show the buttons
 		private static GUIStyle singleStyle, leftStyle, rightStyle;
 
-		//hash set of all menus in scene
-		private static HashSet<Screen> menus = new HashSet<Screen>();
+		static Navigator navigator;
+		static Color violet = new Color(0.898f, 0.745f, 0.935f);
+		static Color saturatedViolet;
 
-		//menu screens to remove
-		private static List<Screen> garbage = new List<Screen>();
-
-		//constructor
 		static ScreenEditor() {
-
-			//only show while !playing
-			if (!EditorApplication.isPlaying) {
-
-				//actual editor event functions
-				EditorApplication.hierarchyWindowItemOnGUI += DrawHierarchyItem;
-				EditorApplication.update += Update;
-
-			}
-
-		}
-
-		//remove all menu screens that are no longer used to avoid memory leak
-		private static void Clean(HashSet<Screen> menus) {
-
-			//clear the unused menus
-			garbage.Clear();
-
-
-			//add all menus that no longer exist to the garbage list
-			foreach (var menu in menus) {
-				if (menu == null) {
-					garbage.Add(menu);
-				}
-			}
-
-			//remove the garbage from the menus list
-			foreach (var menu in garbage) {
-				menus.Remove(menu);
-			}
-		}
-
-
-		//update visuals
-		private static void Update() {
-			//remove the garbage from the menu list
-			Clean(menus);
-
-			foreach (var menu in Object.FindObjectsOfType<Screen>()) {
-				menus.Add(menu);
-			}
-		}
-
-		private static GUIStyle InitStyle(ref GUIStyle style, GUIStyle original, TextAnchor alignment) {
-			if (style == null) {
-				style = new GUIStyle(original);
-				style.alignment = alignment;
-				style.richText = true;
-			}
-
-			return style;
-		}
-		private static bool Button(Rect rect, string label, string tooltip, Color color, FontStyle fontStyle = FontStyle.Normal, int dot = 0, int i = 0, int n = 1) {
-			rect = rect.VioletBackfillRight(BUTTON_WIDTH);
-
-			GUIStyle style = null;
-
-			if (n == 1) {
-				style = InitStyle(ref singleStyle, EditorStyles.miniButton, TextAnchor.MiddleLeft);
-			} else if (n == 2) {
-				switch (i) {
-					case 0:
-						style = InitStyle(ref leftStyle, EditorStyles.miniButtonLeft, TextAnchor.MiddleLeft);
-						break;
-					case 1:
-						style = InitStyle(ref rightStyle, EditorStyles.miniButtonRight, TextAnchor.MiddleRight);
-						break;
-				}
-			}
-
-			var content = new GUIContent(" " + label, null, tooltip);
-
-			style.fontStyle = fontStyle;
-
-			var response = GUI.Button(rect, content, singleStyle);
-
-			style.fontStyle = FontStyle.Normal;
-
-			var shadowColor = Color.Lerp(color, Color.black, 0.5f);
-			shadowColor.a = 0.8f;
-
-			if (dot > 0) {
-				var dotRect = rect.VioletBackfillRight(rect.height).VioletDisplaceX(1f);
-				var dotColor = dot == 2 ? color : Color.grey;
-
-				dotColor.a = 0.5f;
-
-				GUI.Box(dotRect, GUIContent.none);
-				EditorGUI.DrawRect(dotRect.VioletPad(3f).VioletDisplaceX(-1f), dotColor);
-
-			}
-
-			rect = rect.VioletSetWidth(3f).VioletDisplaceX(4f).VioletPadVertical(1f);
-
-			EditorGUI.DrawRect(rect.VioletExtrudeLeft(1f), shadowColor);
-			EditorGUI.DrawRect(rect.VioletExtrudeRight(1f), shadowColor);
-
-			color.a = 0.5f;
-
-			EditorGUI.DrawRect(rect, color);
-
-			return response;
-		}
-
-		private static bool TryGetManagerColor(int instanceID, out Color color) {
-			color = new Color(0.898f, 0.745f, 0.935f);
-			return true;
-		}
-
-		private static void DrawHierarchyItem(int instanceID, Rect rect) {
-			var gameObject = EditorUtility.InstanceIDToObject(instanceID) as GameObject;
-
-			Color violet = new Color(0.898f, 0.745f, 0.935f);
-			float h = 0f, s = 0f, v = 0f;
+			EditorApplication.hierarchyWindowItemOnGUI -= DrawHierarchyItem;
+			EditorApplication.hierarchyWindowItemOnGUI += DrawHierarchyItem;
+			float h,s,v;
 			Color.RGBToHSV(violet, out h, out s, out v);
-			Color saturatedViolet = Color.HSVToRGB(h, 1f, 1f);
+			saturatedViolet = Color.HSVToRGB(h, 1f, 1f);
+		}
+
+		[MenuItem("GameObject/Create Screen", false, 0)]
+		static void CreateScreen() {
+			var gameObject = UnityEditor.Selection.activeGameObject;
+			if (gameObject.GetComponent<Navigator>() == null)  {
+				throw new VioletException($"Unable to create screen child of {gameObject.name} - try adding a Navigator component to {gameObject.name} first.");
+			}
+			Debug.Log("nice");
+		}
+
+		static void DrawHierarchyItem(int instanceID, Rect rect) {
+			var gameObject = EditorUtility.InstanceIDToObject(instanceID) as GameObject;
 			if (gameObject == null) { return; }
 
-			// TODO: just find the parent of any number of Navigation Screens
-			if (gameObject.GetComponent<NavigationController>() != null) {
-				if (Button(rect, "Save", "", saturatedViolet, FontStyle.Normal)) {
-					foreach (var menu in menus) {
-						menu.gameObject.GetComponent<Screen>()?.StopEditing();
-					}
-				}
+			navigator = gameObject.GetComponent<Navigator>();
+			if (navigator != null) {
+				DrawNavigator(navigator, rect);
 				return;
 			}
 
-			if (gameObject.GetComponent<Screen>() != null) {
-				if (Button(rect, "Edit", "", saturatedViolet, FontStyle.Normal, gameObject.activeSelf ? 2 : 1)) {
-					foreach (var menu in menus) {
-						menu.gameObject.GetComponent<Screen>()?.StopEditing();
-					}
-					gameObject.GetComponent<Screen>().StartEditing();
-				}
+			var screen = gameObject.GetComponent<Screen>();
+			if (screen != null) {
+				DrawScreen(screen, rect);
 				return;
 			}
+		}
+
+		static void DrawNavigator(Navigator navigator, Rect rect) {
+			if (navigator.EditingScreen == null) {return;}
+
+			if (Button(rect, "Save", true)) {
+				navigator.FinishEditing();
+			}
+		}
+
+		static void DrawScreen(Screen screen, Rect rect) {
+			var navigator = screen.transform.parent.GetComponent<Navigator>();
+			if (navigator.EditingScreen != null && screen != navigator.EditingScreen) { return; }
+
+			if (Button(rect, screen.isActiveAndEnabled ? "Save" : "Edit", screen.isActiveAndEnabled)) {
+				if (navigator == null) {
+					throw new VioletException($"Tried to edit {screen.name} without a Navigator. Try adding a Navigator component to {screen.transform.parent.name}");
+				}
+				if (screen.isActiveAndEnabled) {
+					navigator.FinishEditing();
+				} else {
+					navigator.Edit(screen);
+				}
+			}
+		}
+
+		static bool Button(Rect rect, string label, bool isActive = false) {
+			// by default the button is 100% width
+			// we move the left edge to make button 60 pixels wide, right aligned
+			var buttonWidth = 60;
+			rect.xMin = rect.xMax - buttonWidth;
+
+			// extend unity mini button style with small tweaks
+			var style = new GUIStyle(EditorStyles.miniButton);
+			style.padding = new RectOffset(3, 0, 1, 1);
+			style.fixedHeight -= 2;
+			style.fontStyle = isActive ? FontStyle.Bold : FontStyle.Normal;
+			style.alignment = TextAnchor.MiddleLeft;
+
+			// set color to violet if active
+			var originalColor = GUI.color;
+			GUI.color = isActive ? violet : originalColor;
+			var response = GUI.Button(rect, new GUIContent(label), style);
+			GUI.color = originalColor;
+
+			return response;
 		}
 	}
 }
