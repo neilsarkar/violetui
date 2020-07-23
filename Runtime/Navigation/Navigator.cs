@@ -203,10 +203,19 @@ namespace VioletUI {
 			var screen = gameObject.AddComponent<Screen>();
 			var canvas = gameObject.AddComponent<Canvas>();
 
-			gameObject.transform.parent = transform;
+			gameObject.transform.SetParent(transform, false);
 			gameObject.transform.position = new Vector3(0,0,0);
 			canvas.renderMode = worldCamera == null ? RenderMode.ScreenSpaceOverlay : RenderMode.ScreenSpaceCamera;
 			EditingScreen = screen;
+		}
+
+		float lastUpdate;
+		void OnValidate() {
+			if (Application.isPlaying) { return; }
+			// if (transform.childCount == 0) { return; }
+			// if (Time.time - lastUpdate <= .5f) { return; }
+			lastUpdate = Time.time;
+			print($"Gonna regen enum");
 		}
 #endif
 	}
