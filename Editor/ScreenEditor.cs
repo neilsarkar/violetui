@@ -18,10 +18,10 @@ namespace VioletUI {
 		private static GUIStyle singleStyle, leftStyle, rightStyle;
 
 		//hash set of all menus in scene
-		private static HashSet<NavigationScreen> menus = new HashSet<NavigationScreen>();
+		private static HashSet<Screen> menus = new HashSet<Screen>();
 
 		//menu screens to remove
-		private static List<NavigationScreen> garbage = new List<NavigationScreen>();
+		private static List<Screen> garbage = new List<Screen>();
 
 		//constructor
 		static ScreenEditor() {
@@ -38,7 +38,7 @@ namespace VioletUI {
 		}
 
 		//remove all menu screens that are no longer used to avoid memory leak
-		private static void Clean(HashSet<NavigationScreen> menus) {
+		private static void Clean(HashSet<Screen> menus) {
 
 			//clear the unused menus
 			garbage.Clear();
@@ -63,7 +63,7 @@ namespace VioletUI {
 			//remove the garbage from the menu list
 			Clean(menus);
 
-			foreach (var menu in Object.FindObjectsOfType<NavigationScreen>()) {
+			foreach (var menu in Object.FindObjectsOfType<Screen>()) {
 				menus.Add(menu);
 			}
 		}
@@ -147,18 +147,18 @@ namespace VioletUI {
 			if (gameObject.GetComponent<NavigationController>() != null) {
 				if (Button(rect, "Save", "", saturatedViolet, FontStyle.Normal)) {
 					foreach (var menu in menus) {
-						menu.gameObject.GetComponent<NavigationScreen>()?.StopEditing();
+						menu.gameObject.GetComponent<Screen>()?.StopEditing();
 					}
 				}
 				return;
 			}
 
-			if (gameObject.GetComponent<NavigationScreen>() != null) {
+			if (gameObject.GetComponent<Screen>() != null) {
 				if (Button(rect, "Edit", "", saturatedViolet, FontStyle.Normal, gameObject.activeSelf ? 2 : 1)) {
 					foreach (var menu in menus) {
-						menu.gameObject.GetComponent<NavigationScreen>()?.StopEditing();
+						menu.gameObject.GetComponent<Screen>()?.StopEditing();
 					}
-					gameObject.GetComponent<NavigationScreen>().StartEditing();
+					gameObject.GetComponent<Screen>().StartEditing();
 				}
 				return;
 			}

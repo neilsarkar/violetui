@@ -6,7 +6,7 @@ using UnityEditor;
 
 namespace VioletUI {
 
-	public class NavigationScreen : TidyBehaviour {
+	public class Screen : TidyBehaviour {
 	#if UNITY_EDITOR
 		public static bool IsSavingPrefab;
 
