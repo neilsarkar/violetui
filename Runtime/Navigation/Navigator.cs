@@ -15,6 +15,7 @@ namespace VioletUI {
 	///
 	/// It is primarily used to navigate between screens, and also exposes the <see cref="OnWillVisit"/> and <seealso cref="OnDidVisit"/> lifecycle events.
 	/// </summary>
+	[ExecuteAlways]
 	public class Navigator : TidyBehaviour {
 		public ScreenId homeScreen = ScreenId.None;
 		public bool hasCamera;
@@ -40,6 +41,7 @@ namespace VioletUI {
 		CancellationTokenSource canceler = null;
 
 		void Awake() {
+			if (!Application.isPlaying) { return; }
 			LoadScreens();
 			VisitFirstScreen();
 		}
@@ -49,7 +51,7 @@ namespace VioletUI {
 			}
 
 			ScreenId screenId = ScreenId.None;
-			foreach (Screen screen in GetComponentsInChildren<Screen>()) {
+			foreach (Screen screen in GetComponentsInChildren<Screen>(true)) {
 				var isValid = Enum.TryParse(screen.name, out screenId);
 				if (!isValid) {
 					throw new VioletException($"{screen.name} does not have a valid ScreenId. Make sure this screen is added to MenuBuilder.");
@@ -162,7 +164,8 @@ namespace VioletUI {
 		ScreenId ScreenToScreenId(Screen screen) {
 			ScreenId ret;
 			var slug = screen.name.Replace(" ", "");
-			var ok = Enum.TryParse<ScreenId>(screen.name.Replace(" ", ""), out ret);
+			var ok = Enum.TryParse<ScreenId>(slug, out ret);
+
 			if (!ok) {
 				throw new VioletEnumException($"{slug} does not exist in ScreenId. This should be set up automatically by navigator but you can add manually as a workaround.");
 			}
@@ -175,6 +178,14 @@ namespace VioletUI {
 
 		public void Edit(Screen screen) {
 			try {
+				homeScreen = ScreenToScreenId(screen);
+			} catch (VioletEnumException) {
+				ScreenIdGenerator.Generate(screen);
+				Debug.LogWarning($"VioletUI - Couldn't find {screen.name} in the ScreenId enum. This should be fixed if you try your action again. If not, please report a bug.");
+				return;
+			}
+
+			try {
 				PrefabUtility.UnpackPrefabInstance(screen.gameObject, PrefabUnpackMode.OutermostRoot, InteractionMode.AutomatedAction);
 			} catch (ArgumentException) {}
 
@@ -182,11 +193,6 @@ namespace VioletUI {
 			EditingScreen = screen;
 			originalHomeScreen = homeScreen;
 
-			try {
-				homeScreen = ScreenToScreenId(screen);
-			} catch(VioletEnumException) {
-				print($"Do enum");
-			}
 		}
 
 		public void FinishEditing(Screen screen = null) {
@@ -210,12 +216,21 @@ namespace VioletUI {
 		}
 
 		float lastUpdate;
-		void OnValidate() {
+		int lastCount;
+		void Update() {
 			if (Application.isPlaying) { return; }
-			// if (transform.childCount == 0) { return; }
-			// if (Time.time - lastUpdate <= .5f) { return; }
+			if (transform.childCount == 0) { return; }
+			if (transform.childCount == lastCount) { return; }
+			if (Time.time - lastUpdate <= .5f) { return; }
+			lastCount = transform.childCount;
 			lastUpdate = Time.time;
-			print($"Gonna regen enum");
+			RegenerateEnums();
+		}
+
+		[Button]
+		void RegenerateEnums() {
+			var screens = GetComponentsInChildren<Screen>(true);
+			ScreenIdGenerator.Generate(screens);
 		}
 #endif
 	}
