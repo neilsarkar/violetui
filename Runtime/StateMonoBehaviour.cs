@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using Dispatch;
 using Sirenix.OdinInspector;
+#if UNITY_EDITOR
+using UnityEditor.ShortcutManagement;
+#endif
 
 namespace VioletUI {
 	[ExecuteAlways]
@@ -50,14 +53,15 @@ namespace VioletUI {
 		}
 
 		[Button, GUIColor(0.898f, 0.745f, 0.935f)]
+		[Shortcut("VioletRender", KeyCode.Period, ShortcutModifiers.Action)]
 		void Render() {
+			print($"Rendering!");
 			State.TriggerChange();
 			CopyState();
 		}
 
 		void Update() {
 			if (Application.isPlaying) { return; }
-
 			Singleton = this;
 		}
 #endif

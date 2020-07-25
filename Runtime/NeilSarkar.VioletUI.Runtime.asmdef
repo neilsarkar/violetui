@@ -1,7 +1,8 @@
 {
     "name": "NeilSarkar.VioletUI.Runtime",
     "references": [
-        "GUID:8e3dba6773ea84ec89c8bb46293c6471"
+        "GUID:8e3dba6773ea84ec89c8bb46293c6471",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
