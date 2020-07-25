@@ -52,6 +52,11 @@ namespace VioletUI {
 
 		static void DrawScreen(Screen screen, Rect rect) {
 			var navigator = screen.transform.parent.GetComponent<Navigator>();
+			if (navigator == null) {
+				Violet.LogWarning($"Unable to find Navigator for {screen.name} - make sure {screen.transform.parent.name} has a Navigator component");
+				return;
+			}
+
 			if (navigator.EditingScreen != null && screen != navigator.EditingScreen) { return; }
 
 			if (Button(rect, screen.isActiveAndEnabled ? "Save" : "Edit", screen.isActiveAndEnabled)) {

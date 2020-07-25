@@ -17,11 +17,14 @@ namespace VioletUI {
 	/// </summary>
 	[ExecuteAlways]
 	public class Navigator : TidyBehaviour {
+#region inspector values
 		public ScreenId homeScreen = ScreenId.None;
 		public bool hasCamera;
 		[ShowIf("hasCamera")]
 		public Camera worldCamera;
+#endregion
 
+#region actions
 		public Action OnReady;
 
 		public Action<ScreenId> OnWillVisit;
@@ -31,14 +34,15 @@ namespace VioletUI {
 
 		public Action<ScreenId> OnModalShow;
 		public Action<ScreenId> OnModalHide;
+#endregion
 
-		Dictionary<ScreenId, Screen> screens = new Dictionary<ScreenId, Screen>();
-		ScreenId lastScreen = ScreenId.None;
-		ScreenId currentScreen = ScreenId.None;
-		ScreenId currentModal = ScreenId.None;
-
-		[NonSerialized]
-		CancellationTokenSource canceler = null;
+#region local
+		[NonSerialized] Dictionary<ScreenId, Screen> screens = new Dictionary<ScreenId, Screen>();
+		[NonSerialized] ScreenId lastScreen = ScreenId.None;
+		[NonSerialized] ScreenId currentScreen = ScreenId.None;
+		[NonSerialized] ScreenId currentModal = ScreenId.None;
+		[NonSerialized] CancellationTokenSource canceler = null;
+#endregion
 
 		void Awake() {
 			if (!Application.isPlaying) { return; }
