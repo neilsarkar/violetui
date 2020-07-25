@@ -10,8 +10,8 @@ using UnityEditor.ShortcutManagement;
 
 namespace VioletUI {
 	[ExecuteAlways]
-	public abstract class StateMonoBehaviour<TState> : TidyBehaviour where TState : class, IState {
-		public static StateMonoBehaviour<TState> Singleton;
+	public abstract class StateMonobehaviour<TState> : TidyBehaviour where TState : class, IState {
+		public static StateMonobehaviour<TState> Singleton;
 
 		public TState State;
 		[NonSerialized, HideInInspector] public TState LastState;
@@ -30,16 +30,19 @@ namespace VioletUI {
 		public class View : View<TState> {
 			protected override TState State => Singleton?.State;
 			protected override TState LastState => Singleton?.LastState;
+			protected override Dispatcher<TState> Dispatcher => Dispatcher;
 		}
 
 		public abstract class RepeatView<T> : RepeatView<TState, T> {
 			protected override TState State => Singleton?.State;
 			protected override TState LastState => Singleton?.LastState;
+			protected override Dispatcher<TState> Dispatcher => Dispatcher;
 		}
 
 		public abstract class ChildView<T> : ChildView<TState, T> {
 			protected override TState State => Singleton?.State;
 			protected override TState LastState => Singleton?.LastState;
+			protected override Dispatcher<TState> Dispatcher => Dispatcher;
 		}
 
 		void Awake() {

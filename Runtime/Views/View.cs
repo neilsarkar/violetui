@@ -6,6 +6,10 @@ using UnityEngine;
 namespace VioletUI {
 	[ExecuteAlways]
 	public abstract class View<TState> : TidyBehaviour where TState : class, IState {
+		/// <summary>
+		/// A view requires a reference to State and LastState.
+		/// </summary>
+		/// <value></value>
 		protected abstract TState State { get; }
 		protected abstract TState LastState { get; }
 
@@ -18,7 +22,7 @@ namespace VioletUI {
 		/// </summary>
 		protected virtual void OnHide() { }
 		/// <summary>
-		/// ShouldRender is used to short circuit expensive render calls by focusing on parts of the state you care about.
+		/// IsDirty is used to short circuit expensive render calls by focusing on parts of the state you care about.
 		///
 		/// return `false` to avoid rendering
 		/// </summary>
@@ -32,13 +36,21 @@ namespace VioletUI {
 		/// <param name="state"></param>
 		protected virtual void Render(TState state) { }
 
-		Dispatcher<TState> m_dispatcher;
-		protected Dispatcher<TState> dispatcher {
+		/// <summary>
+		/// dispatcher allows you to send Actions that
+		/// </summary>
+		protected virtual Dispatcher<TState> Dispatcher {
 			get {
-				if (m_dispatcher == null) { m_dispatcher = new Dispatcher<TState>(State, LastState); }
-				return m_dispatcher;
+				if (dispatcher == null) { dispatcher = new Dispatcher<TState>(State, LastState); }
+				return dispatcher;
 			}
 		}
+		Dispatcher<TState> dispatcher;
+
+		// convenience methods for logging in views
+		protected void Log(string s) { Violet.Log(s); }
+		protected void LogWarning(string s) { Violet.LogWarning(s); }
+		protected void LogError(string s) { Violet.LogError(s); }
 
 		// Internal methods are so that callers don't have to remember to call base. at the beginning of their implementations
 		internal virtual void OnShowInternal() {}
@@ -96,20 +108,20 @@ namespace VioletUI {
 
 		void Warn(string msg) {
 #if VIOLETDEV
-			UnityEngine.Debug.LogWarning(msg);
+			Violet.LogWarning(msg);
 #endif
 		}
 
 		void Verbose(string msg) {
 #if VIOLETDEV && VIOLET_VERBOSE
-			UnityEngine.Debug.Log(msg);
+			Violet.Log(msg);
 #endif
 		}
 
 #if UNITY_EDITOR
 		public virtual void Update() {
 			if (Application.isPlaying) { return; }
-			if (State == null) { Debug.LogWarning("State is null"); return; }
+			if (State == null) { Warn("State is null"); return; }
 			State.OnChange -= State_OnChange;
 			State.OnChange += State_OnChange;
 		}

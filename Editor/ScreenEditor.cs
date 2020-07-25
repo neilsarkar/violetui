@@ -15,15 +15,10 @@ namespace VioletUI {
 		private static GUIStyle singleStyle, leftStyle, rightStyle;
 
 		static Navigator navigator;
-		static Color violet = new Color(0.898f, 0.745f, 0.935f);
-		static Color saturatedViolet;
 
 		static ScreenEditor() {
 			EditorApplication.hierarchyWindowItemOnGUI -= DrawHierarchyItem;
 			EditorApplication.hierarchyWindowItemOnGUI += DrawHierarchyItem;
-			float h,s,v;
-			Color.RGBToHSV(violet, out h, out s, out v);
-			saturatedViolet = Color.HSVToRGB(h, 1f, 1f);
 		}
 
 		static void DrawHierarchyItem(int instanceID, Rect rect) {
@@ -86,7 +81,7 @@ namespace VioletUI {
 
 			// set color to violet if active
 			var originalColor = GUI.color;
-			GUI.color = isActive ? violet : originalColor;
+			GUI.color = isActive ? Violet.Hue : originalColor;
 			var response = GUI.Button(rect, new GUIContent(label), style);
 			GUI.color = originalColor;
 

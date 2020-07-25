@@ -11,9 +11,9 @@ using UnityEditor;
 
 namespace VioletUI {
 	/// <summary>
-	/// Screens maintains a map of <see cref="ScreenId"/> enum to menu screens.
+	/// Navigator maintains a map of <see cref="ScreenId"/> enum to menu screens.
 	///
-	/// It is primarily used to navigate between screens, and also exposes the <see cref="OnWillVisit"/> and <seealso cref="OnDidVisit"/> lifecycle events.
+	/// It is used to navigate between screens and exposes <see cref="OnWillLeave"/>, <see cref="OnDidLeave" />, <see cref="OnWillVisit"/>,  and <see cref="OnDidVisit"/>.
 	/// </summary>
 	[ExecuteAlways]
 	public class Navigator : TidyBehaviour {
@@ -46,15 +46,14 @@ namespace VioletUI {
 			VisitFirstScreen();
 		}
 		void LoadScreens() {
-			if (transform.childCount == 0) {
-				throw new Exception($"Tried to create a NavigationController with no children - try adding some NavigationScreens to {gameObject.name}");
-			}
+			if (transform.childCount == 0) { return; }
 
 			ScreenId screenId = ScreenId.None;
 			foreach (Screen screen in GetComponentsInChildren<Screen>(true)) {
 				var isValid = Enum.TryParse(screen.name, out screenId);
 				if (!isValid) {
-					throw new VioletException($"{screen.name} does not have a valid ScreenId. Make sure this screen is added to MenuBuilder.");
+					RegenerateEnums();
+					throw new VioletException($"{screen.name} does not have a valid ScreenId.");
 				}
 
 				if (hasCamera) {
@@ -82,7 +81,7 @@ namespace VioletUI {
 		/// <param name="screenId"></param>
 		public async void Visit(ScreenId screenId) {
 			if (!screens.ContainsKey(screenId)) {
-				throw new Exception($"Tried to visit {screenId} but it doesn't exist in the current scene. You'll want to add the {screenId} prefab to this scene or to the MenuBuilder prefab. Or change the Home Screen to the screen you want.");
+				throw new VioletException($"Tried to visit {screenId} but it doesn't exist in the current scene. You'll want to add the {screenId} prefab to this scene or to the MenuBuilder prefab. Or change the Home Screen to the screen you want.");
 			}
 
 			// if we're currently in a transition, cancel the transition and run OnHide/OnShow immediately
@@ -142,7 +141,7 @@ namespace VioletUI {
 			ScreenId screenId;
 			var isValid = Enum.TryParse<ScreenId>(screenIdString.Replace(" ", ""), out screenId);
 			if (!isValid) {
-				throw new Exception($"Couldn't find a screen with the id {screenIdString.Replace(" ", "")}. Please check the spelling.");
+				throw new VioletException($"Couldn't find a screen with the id {screenIdString.Replace(" ", "")}. Please check the spelling.");
 			}
 			Visit(screenId);
 		}
@@ -151,7 +150,7 @@ namespace VioletUI {
 			ScreenId screenId;
 			var isValid = Enum.TryParse<ScreenId>(screenIdString.Replace(" ", ""), out screenId);
 			if (!isValid) {
-				throw new Exception($"Couldn't find a screen with the id {screenIdString.Replace(" ", "")}. Please check the spelling.");
+				throw new VioletException($"Couldn't find a screen with the id {screenIdString.Replace(" ", "")}. Please check the spelling.");
 			}
 
 			ShowModal(screenId);
@@ -181,7 +180,7 @@ namespace VioletUI {
 				homeScreen = ScreenToScreenId(screen);
 			} catch (VioletEnumException) {
 				ScreenIdGenerator.Generate(screen);
-				Debug.LogWarning($"VioletUI - Couldn't find {screen.name} in the ScreenId enum. This should be fixed if you try your action again. If not, please report a bug.");
+				Violet.LogWarning($"Couldn't find {screen.name} in the ScreenId enum. This should be fixed if you hit edit again. If not, please report a bug.");
 				return;
 			}
 

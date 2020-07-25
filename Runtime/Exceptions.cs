@@ -7,7 +7,8 @@ namespace VioletUI {
 	}
 
 	public class VioletException : Exception {
-		public VioletException(string message) : base(message) { }
+		public VioletException(string message) :
+			base($"{Violet.Color("VioletUI")} | {message}") { }
 	}
 
 	public class VioletEnumException : VioletException {

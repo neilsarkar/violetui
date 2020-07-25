@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using UnityEditor;
+using UnityEditor.Compilation;
 using UnityEngine;
 
 namespace VioletUI {
@@ -30,10 +32,11 @@ namespace VioletUI {
 
 		static List<string> Filter(List<string> screens) {
 			var ret = new List<string>();
-			foreach (var screen in screens) {
+			foreach (var screen in screens.Distinct()) {
 				if (screen == null) { continue; }
 				var name = sanitize(screen);
-				if (Enum.TryParse<ScreenId>(screen, out _)) { continue; }
+				if (Enum.TryParse<ScreenId>(name, out _)) { continue; }
+				Violet.Log($"Adding new screen to enum - {name}");
 				ret.Add(name);
 			}
 			return ret;
@@ -60,13 +63,31 @@ namespace VioletUI {
 			}
 			sb.AppendLine("\t}");
 			sb.AppendLine("}");
-			string path = Path.GetFullPath("Packages/violetui/Runtime/Navigation/ScreenId.cs");
+			string path = $"{packagePath()}/Runtime/Navigation/ScreenId.cs";
 			File.WriteAllText(path, sb.ToString());
+			Violet.Log("Regenerating the ScreenId enum, this may take a second to recompile.");
 			AssetDatabase.Refresh();
 		}
 
 		static string sanitize(string s) {
 			return s.Replace(" ", "");
 		}
+
+		static string scriptPath() {
+			return null;
+		}
+		static string packagePath() {
+			foreach (var path in packagePaths) {
+				var paths = Directory.GetDirectories(path, "*violetui*", SearchOption.TopDirectoryOnly);
+				if (paths.Length > 0) { return paths[0];}
+			}
+			throw new VioletException("Can't find violetui in Library/PackageCache or Packages. Please report a bug.");
+		}
+		static string[] packagePaths = new string[] {
+			Path.GetFullPath("Library/PackageCache"),
+			Path.GetFullPath("Packages")
+		};
 	}
 }
+
+
