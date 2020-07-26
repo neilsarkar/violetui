@@ -46,7 +46,7 @@ namespace VioletUI {
 			if(Event.current.type != EventType.MouseDown) { return; }
 
 			var mousePosition = Event.current.mousePosition;
-			mousePosition.y = 768 - mousePosition.y;
+			mousePosition.y = UnityEngine.Screen.height - mousePosition.y;
 
 			var rect = GetComponent<RectTransform>().rect;
 			var topLeft = transform.position + new Vector3(rect.xMin, rect.yMin, 0);
