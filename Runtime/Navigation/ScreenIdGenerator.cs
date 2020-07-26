@@ -34,7 +34,7 @@ namespace VioletUI {
 			var ret = new List<string>();
 			foreach (var screen in screens.Distinct()) {
 				if (screen == null) { continue; }
-				var name = sanitize(screen);
+				var name = Sanitize(screen);
 				if (Enum.TryParse<ScreenId>(name, out _)) { continue; }
 				Violet.Log($"Adding new screen to enum - {name}");
 				ret.Add(name);
@@ -69,7 +69,7 @@ namespace VioletUI {
 			AssetDatabase.Refresh();
 		}
 
-		static string sanitize(string s) {
+		public static string Sanitize(string s) {
 			return s.Replace(" ", "");
 		}
 

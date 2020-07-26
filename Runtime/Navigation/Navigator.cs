@@ -44,7 +44,7 @@ namespace VioletUI {
 		[NonSerialized] CancellationTokenSource canceler = null;
 #endregion
 
-		void Awake() {
+		void Start() {
 			if (!Application.isPlaying) { return; }
 			LoadScreens();
 			VisitFirstScreen();
@@ -54,10 +54,15 @@ namespace VioletUI {
 
 			ScreenId screenId = ScreenId.None;
 			foreach (Screen screen in GetComponentsInChildren<Screen>(true)) {
-				var isValid = Enum.TryParse(screen.name, out screenId);
+				var isValid = Enum.TryParse(ScreenIdGenerator.Sanitize(screen.name), out screenId);
 				if (!isValid) {
+#if UNITY_EDITOR
+					Violet.LogWarning($"Couldn't find {screen.name}, regenerating. Try pressing play again. ScreenId contains {string.Join(", ", Enum.GetNames(typeof(ScreenId)))}");
 					RegenerateEnums();
-					throw new VioletException($"{screen.name} does not have a valid ScreenId.");
+					EditorApplication.ExitPlaymode();
+#else
+					throw new VioletException($"{screen.name} does not have a valid ScreenId. ScreenId contains {string.Join(", ", Enum.GetNames(typeof(ScreenId)))}"");
+#endif
 				}
 
 				if (hasCamera) {
@@ -138,9 +143,10 @@ namespace VioletUI {
 		// Sigh.
 		// https://forum.unity.com/threads/ability-to-add-enum-argument-to-button-functions.270817/
 		/// <summary>
-		/// Visit by string is for use in UnityEvents only. In code, please use Visit by enum
+		/// Visit by string is for use in UnityEvents, since the editor doesn't show functions with enum arguments
 		/// </summary>
 		/// <param name="screenIdString"></param>
+		[Obsolete("This is for us in UnityEvents only since they can't accept an enum. Use `Visit(ScreenId screenId)` instead")]
 		public void Visit(string screenIdString) {
 			ScreenId screenId;
 			var isValid = Enum.TryParse<ScreenId>(screenIdString.Replace(" ", ""), out screenId);
@@ -166,7 +172,7 @@ namespace VioletUI {
 
 		ScreenId ScreenToScreenId(Screen screen) {
 			ScreenId ret;
-			var slug = screen.name.Replace(" ", "");
+			var slug = ScreenIdGenerator.Sanitize(screen.name);
 			var ok = Enum.TryParse<ScreenId>(slug, out ret);
 
 			if (!ok) {
@@ -180,11 +186,12 @@ namespace VioletUI {
 		[SerializeField, HideInInspector] ScreenId originalHomeScreen;
 
 		public void Edit(Screen screen) {
+			originalHomeScreen = homeScreen;
 			try {
 				homeScreen = ScreenToScreenId(screen);
 			} catch (VioletEnumException) {
-				ScreenIdGenerator.Generate(screen);
 				Violet.LogWarning($"Couldn't find {screen.name} in the ScreenId enum. This should be fixed if you hit edit again. If not, please report a bug.");
+				ScreenIdGenerator.Generate(screen);
 				return;
 			}
 
@@ -194,8 +201,6 @@ namespace VioletUI {
 
 			screen.gameObject.SetActive(true);
 			EditingScreen = screen;
-			originalHomeScreen = homeScreen;
-
 		}
 
 		public void FinishEditing(Screen screen = null) {
