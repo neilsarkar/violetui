@@ -152,6 +152,7 @@ namespace VioletUI {
 			if (transform.childCount == 0) { return; }
 
 			ScreenId screenId = ScreenId.None;
+			screens.Clear();
 			foreach (Screen screen in GetComponentsInChildren<Screen>(true)) {
 				var isValid = Enum.TryParse(ScreenIdGenerator.Sanitize(screen.name), out screenId);
 				if (!isValid) {
@@ -229,11 +230,10 @@ namespace VioletUI {
 		float lastUpdate;
 		void Update() {
 			if (Application.isPlaying) { return; }
-			if (transform.childCount == 0) { return; }
-			if (transform.childCount == screens.Count) { return; }
+			if (transform.childCount == 0 || transform.childCount == screens.Count) { return; }
 			if (Time.time - lastUpdate <= .5f) { return; }
 			lastUpdate = Time.time;
-			Violet.LogVerbose($"{name} reloading screens and regenerating enums");
+			Violet.LogVerbose($"{name} reloading screens and regenerating enums. childCount={transform.childCount} screensCount={screens.Count}");
 			LoadScreens();
 			RegenerateEnums();
 		}
