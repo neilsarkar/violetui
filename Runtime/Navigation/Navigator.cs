@@ -238,10 +238,22 @@ namespace VioletUI {
 			RegenerateEnums();
 		}
 
-		[Button]
+		[NonSerialized, ShowInInspector] public bool Advanced;
+		[Title("Advanced")]
+		[ShowIf("Advanced"), Button, GUIColor(Violet.r, Violet.g, Violet.b)]
+		void Regenerate() {
+			Violet.Log($"Regenerating enums...");
+			RegenerateEnums();
+			Violet.Log($"Reloading screens...");
+			LoadScreens();
+			Violet.Log($"Done.");
+		}
+
 		void RegenerateEnums() {
 			var screens = GetComponentsInChildren<Screen>(true);
 			ScreenIdGenerator.Generate(screens);
+			Violet.Log($"Reloading screens...");
+			Violet.Log($"Done.");
 		}
 #endif
 	}
