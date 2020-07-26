@@ -49,13 +49,17 @@ namespace VioletUI {
 			mousePosition.y = UnityEngine.Screen.height - mousePosition.y;
 
 			var rect = GetComponent<RectTransform>().rect;
+			var camera = GetComponentInParent<Canvas>().worldCamera;
+			if (camera != null) {
+				mousePosition = camera.ScreenToWorldPoint(mousePosition);
+			}
 			var topLeft = transform.position + new Vector3(rect.xMin, rect.yMin, 0);
 			var bottomRight = transform.position + new Vector3(rect.xMax, rect.yMax, 0);
 			if (topLeft.x <= mousePosition.x && mousePosition.x <= bottomRight.x &&
 					topLeft.y <= mousePosition.y && mousePosition.y <= bottomRight.y ) {
 				Submit();
 			} else {
-				Violet.LogVerbose($"topLeft={topLeft} bottomRight={bottomRight} mousePosition={mousePosition}");
+				Violet.LogVerbose($"transform.position={transform.position} topLeft={topLeft} bottomRight={bottomRight} mousePosition={mousePosition}");
 			}
 		}
 #endif
