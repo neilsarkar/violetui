@@ -36,7 +36,6 @@ namespace VioletUI {
 				if (screen == null) { continue; }
 				var name = Sanitize(screen);
 				if (Enum.TryParse<ScreenId>(name, out _)) { continue; }
-				Violet.Log($"Adding new screen to enum - {name}");
 				ret.Add(name);
 			}
 			return ret;

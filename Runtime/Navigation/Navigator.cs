@@ -6,6 +6,7 @@ using Sirenix.OdinInspector;
 using System.Threading;
 using UniRx.Async;
 #if UNITY_EDITOR
+using UnityEngine.UI;
 using UnityEditor;
 #endif
 
@@ -17,14 +18,14 @@ namespace VioletUI {
 	/// </summary>
 	[ExecuteAlways]
 	public class Navigator : TidyBehaviour {
-#region inspector values
+		#region inspector values
 		public ScreenId homeScreen = ScreenId.None;
 		public bool hasCamera;
 		[ShowIf("hasCamera")]
 		public Camera worldCamera;
-#endregion
+		#endregion
 
-#region actions
+		#region actions
 		public Action OnReady;
 
 		public Action<ScreenId> OnWillVisit;
@@ -34,54 +35,20 @@ namespace VioletUI {
 
 		public Action<ScreenId> OnModalShow;
 		public Action<ScreenId> OnModalHide;
-#endregion
+		#endregion
 
-#region local
+		#region local
 		[NonSerialized] Dictionary<ScreenId, Screen> screens = new Dictionary<ScreenId, Screen>();
 		[NonSerialized] ScreenId lastScreen = ScreenId.None;
 		[NonSerialized] ScreenId currentScreen = ScreenId.None;
 		[NonSerialized] ScreenId currentModal = ScreenId.None;
 		[NonSerialized] CancellationTokenSource canceler = null;
-#endregion
+		#endregion
 
 		void Start() {
 			if (!Application.isPlaying) { return; }
 			LoadScreens();
 			VisitFirstScreen();
-		}
-		void LoadScreens() {
-			if (transform.childCount == 0) { return; }
-
-			ScreenId screenId = ScreenId.None;
-			foreach (Screen screen in GetComponentsInChildren<Screen>(true)) {
-				var isValid = Enum.TryParse(ScreenIdGenerator.Sanitize(screen.name), out screenId);
-				if (!isValid) {
-#if UNITY_EDITOR
-					Violet.LogWarning($"Couldn't find {screen.name}, regenerating. Try pressing play again. ScreenId contains {string.Join(", ", Enum.GetNames(typeof(ScreenId)))}");
-					RegenerateEnums();
-					EditorApplication.ExitPlaymode();
-#else
-					throw new VioletException($"{screen.name} does not have a valid ScreenId. ScreenId contains {string.Join(", ", Enum.GetNames(typeof(ScreenId)))}"");
-#endif
-				}
-
-				if (hasCamera) {
-					if (worldCamera == null) {
-						throw new VioletException($"{name} does not have a camera attached. Either set hasCamera to false or attach a camera.");
-					}
-					var canvas = screen.gameObject.GetComponent<Canvas>();
-					if (canvas == null) {
-						throw new VioletException($"{screen.name} does not have a Canvas component to attach {worldCamera.name} to. Either make {screen.name} a canvas or remove the camera from {name}");
-					}
-					canvas.renderMode = RenderMode.ScreenSpaceCamera;
-					canvas.worldCamera = worldCamera;
-				}
-
-				screens[screenId] = screen;
-				screen.gameObject.SetActive(false);
-			}
-
-			OnReady?.Invoke();
 		}
 
 		/// <summary>
@@ -156,7 +123,7 @@ namespace VioletUI {
 			Visit(screenId);
 		}
 
-		public void ShowModal (string screenIdString) {
+		public void ShowModal(string screenIdString) {
 			ScreenId screenId;
 			var isValid = Enum.TryParse<ScreenId>(screenIdString.Replace(" ", ""), out screenId);
 			if (!isValid) {
@@ -181,6 +148,42 @@ namespace VioletUI {
 			return ret;
 		}
 
+		void LoadScreens() {
+			if (transform.childCount == 0) { return; }
+
+			ScreenId screenId = ScreenId.None;
+			foreach (Screen screen in GetComponentsInChildren<Screen>(true)) {
+				var isValid = Enum.TryParse(ScreenIdGenerator.Sanitize(screen.name), out screenId);
+				if (!isValid) {
+#if UNITY_EDITOR
+					Violet.LogWarning($"Couldn't find {screen.name}, regenerating. Try pressing play again. ScreenId contains {string.Join(", ", Enum.GetNames(typeof(ScreenId)))}");
+					RegenerateEnums();
+					EditorApplication.ExitPlaymode();
+#else
+					throw new VioletException($"{screen.name} does not have a valid ScreenId. ScreenId contains {string.Join(", ", Enum.GetNames(typeof(ScreenId)))}"");
+#endif
+				}
+
+				if (hasCamera) {
+					if (worldCamera == null) {
+						throw new VioletException($"{name} does not have a camera attached. Either set hasCamera to false or attach a camera.");
+					}
+					var canvas = screen.gameObject.GetComponent<Canvas>();
+					if (canvas == null) {
+						throw new VioletException($"{screen.name} does not have a Canvas component to attach {worldCamera.name} to. Either make {screen.name} a canvas or remove the camera from {name}");
+					}
+					canvas.renderMode = RenderMode.ScreenSpaceCamera;
+					canvas.worldCamera = worldCamera;
+				}
+
+				screens[screenId] = screen;
+				screen.gameObject.SetActive(false);
+			}
+
+			OnReady?.Invoke();
+		}
+
+
 #if UNITY_EDITOR
 		[HideInInspector] public Screen EditingScreen;
 		[SerializeField, HideInInspector] ScreenId originalHomeScreen;
@@ -191,24 +194,22 @@ namespace VioletUI {
 				homeScreen = ScreenToScreenId(screen);
 			} catch (VioletEnumException) {
 				Violet.LogWarning($"Couldn't find {screen.name} in the ScreenId enum. This should be fixed if you hit edit again. If not, please report a bug.");
-				ScreenIdGenerator.Generate(screen);
+				RegenerateEnums();
 				return;
 			}
 
-			try {
-				PrefabUtility.UnpackPrefabInstance(screen.gameObject, PrefabUnpackMode.OutermostRoot, InteractionMode.AutomatedAction);
-			} catch (ArgumentException) {}
-
+			screen.UnpackPrefab();
 			screen.gameObject.SetActive(true);
 			EditingScreen = screen;
+			currentScreen = ScreenToScreenId(screen);
 		}
 
 		public void FinishEditing(Screen screen = null) {
 			if (EditingScreen == null) { EditingScreen = gameObject.GetComponentInChildren<Screen>(); }
 			if (screen == null) { screen = EditingScreen; }
-			PrefabUtility.SaveAsPrefabAssetAndConnect(screen.gameObject, $"Assets/Menus/{screen.name}.prefab", InteractionMode.AutomatedAction);
+			screen.PackPrefab();
 			screen.gameObject.SetActive(false);
-			if (screen == EditingScreen) { EditingScreen = null; } ;
+			if (screen == EditingScreen) { EditingScreen = null; };
 			homeScreen = originalHomeScreen;
 		}
 
@@ -216,22 +217,24 @@ namespace VioletUI {
 			var gameObject = new GameObject("Rename Me");
 			var screen = gameObject.AddComponent<Screen>();
 			var canvas = gameObject.AddComponent<Canvas>();
+			gameObject.AddComponent<CanvasRenderer>();
+			gameObject.AddComponent<GraphicRaycaster>();
 
 			gameObject.transform.SetParent(transform, false);
-			gameObject.transform.position = new Vector3(0,0,0);
+			gameObject.transform.position = new Vector3(0, 0, 0);
 			canvas.renderMode = worldCamera == null ? RenderMode.ScreenSpaceOverlay : RenderMode.ScreenSpaceCamera;
 			EditingScreen = screen;
 		}
 
 		float lastUpdate;
-		int lastCount;
 		void Update() {
 			if (Application.isPlaying) { return; }
 			if (transform.childCount == 0) { return; }
-			if (transform.childCount == lastCount) { return; }
+			if (transform.childCount == screens.Count) { return; }
 			if (Time.time - lastUpdate <= .5f) { return; }
-			lastCount = transform.childCount;
 			lastUpdate = Time.time;
+			Violet.LogVerbose($"{name} reloading screens and regenerating enums");
+			LoadScreens();
 			RegenerateEnums();
 		}
 

@@ -28,6 +28,16 @@ public static class Violet {
 		Debug.LogError($"{Color("VioletUI | ")}{s}");
 	}
 
+	/// <summary>
+	/// Logs if VIOLET_VERBOSE define symbol is set
+	/// </summary>
+	/// <param name="s"></param>
+	public static void LogVerbose(string s) {
+#if VIOLET_VERBOSE
+		Log($"{Color("verbose | ")}{s}");
+#endif
+	}
+
 	// #ceb2da
 	// hsl(282, 35%, 78%)
 	/// <summary>

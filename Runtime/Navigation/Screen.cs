@@ -102,9 +102,31 @@ namespace VioletUI {
 			EditorSceneManager.sceneSaved += EditorSceneManager_sceneSaved;
 		}
 
+		// [SerializeField, HideInInspector]
+		string prefabPath = "";
+
+		public void PackPrefab() {
+			var path = string.IsNullOrEmpty(prefabPath) ? $"Assets/Menus/{name}.prefab" : prefabPath;
+			PrefabUtility.SaveAsPrefabAssetAndConnect(gameObject, path, InteractionMode.AutomatedAction);
+		}
+
+		public void UnpackPrefab() {
+			if (!PrefabUtility.IsAnyPrefabInstanceRoot(gameObject)) {
+				Violet.LogVerbose($"Not unpacking {name} bc it's not a prefab yet.");
+				return;
+			}
+
+			prefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(gameObject);
+			Violet.LogVerbose($"prefabPath is {prefabPath} for {name}");
+			PrefabUtility.UnpackPrefabInstance(gameObject, PrefabUnpackMode.OutermostRoot, InteractionMode.AutomatedAction);
+		}
+
 		void EditorSceneManager_sceneSaved(Scene scene) {
 			try {
-				Violet.Log($"Scene saved, will update the {name} fabio");
+				if (!gameObject.activeSelf) {return;}
+				PackPrefab();
+				UnpackPrefab();
+				Violet.Log($"Saved {name} prefab");
 			} catch(MissingReferenceException) {}
 		}
 #else
