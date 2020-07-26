@@ -55,18 +55,21 @@ namespace VioletUI {
 			Render();
 		}
 
-		[Button, GUIColor(0.898f, 0.745f, 0.935f)]
-		[Shortcut("VioletRender", KeyCode.Period, ShortcutModifiers.Action)]
+		void Update() {
+			if (Application.isPlaying) { return; }
+
+			RenderShortcut.OnPress -= Render;
+			RenderShortcut.OnPress += Render;
+			Singleton = this;
+		}
+
+		[Button("Render (shortcut: cmd+;)"), GUIColor(Violet.r, Violet.g, Violet.b)]
 		void Render() {
-			print($"Rendering!");
+			if (State == null) { Violet.LogWarning($"state is null for {name}");}
 			State.TriggerChange();
 			CopyState();
 		}
 
-		void Update() {
-			if (Application.isPlaying) { return; }
-			Singleton = this;
-		}
 #endif
 	}
 }

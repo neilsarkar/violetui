@@ -9,7 +9,7 @@ public static class Violet {
 	/// </summary>
 	/// <param name="s">String to log</param>
 	public static void Log(string s) {
-		Debug.Log($"{Color("VioletUI")} | {s}");
+		Debug.Log($"{Color("VioletUI | ")}{s}");
 	}
 
 	/// <summary>
@@ -17,7 +17,7 @@ public static class Violet {
 	/// </summary>
 	/// <param name="s">String to log</param>
 	public static void LogWarning(string s) {
-		Debug.LogWarning($"{Color("VioletUI")} | {s}");
+		Debug.LogWarning($"{Color("VioletUI | ")}{s}");
 	}
 
 	/// <summary>
@@ -25,7 +25,7 @@ public static class Violet {
 	/// </summary>
 	/// <param name="s">String to log</param>
 	public static void LogError(string s) {
-		Debug.LogError($"{Color("VioletUI")} | {s}");
+		Debug.LogError($"{Color("VioletUI | ")}{s}");
 	}
 
 	// #ceb2da
@@ -34,7 +34,11 @@ public static class Violet {
 	/// Violet color used for inspector buttons
 	/// </summary>
 	/// <returns></returns>
-	public static Color Hue = new Color(0.898f, 0.745f, 0.935f);
+	public static Color Hue = new Color(r, g, b);
+
+	public const float r = 0.898f;
+	public const float g = 0.745f;
+	public const float b = 0.935f;
 
 	// #b300ff
 	// rgb(179, 0, 255)
