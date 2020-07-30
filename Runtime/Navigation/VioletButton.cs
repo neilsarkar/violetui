@@ -9,7 +9,7 @@ namespace VioletUI {
 	public class VioletButton : UnityEngine.UI.Button {
 		public ScreenId visitScreen;
 
-		Navigator navigator;
+		protected Navigator navigator;
 		protected override void Awake() {
 			base.Awake();
 			navigator = gameObject.GetComponentInParent<Navigator>();
