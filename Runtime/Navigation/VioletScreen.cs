@@ -15,7 +15,7 @@ using UnityEditor;
 
 namespace VioletUI {
 	[ExecuteAlways]
-	public class Screen : TidyBehaviour {
+	public class VioletScreen : TidyBehaviour {
 
 		[Title("Show/Hide")]
 
@@ -26,18 +26,20 @@ namespace VioletUI {
 
 		Animator animator;
 
-		void OnEnable() {
+		protected virtual void OnEnable() {
 			animator = gameObject.GetComponent<Animator>();
 		}
 
-		internal async UniTask<bool> Show(CancellationToken token = default, string triggerOverride = null) {
-			gameObject.SetActive(true);
+		protected virtual void DidShow() { OnShow?.Invoke(); }
+		protected virtual void DidHide() { OnHide?.Invoke(); }
+		protected virtual void WillShow() {}
+		protected virtual void WillHide() {}
 
-			// if (HasGate && Release.Flags[gate]) {
-			// 	OnGatedShow?.Invoke();
-			// } else {
-			// 	OnShow?.Invoke();
-			// }
+		internal async UniTask<bool> Show(CancellationToken token = default, string triggerOverride = null) {
+			WillShow();
+
+			gameObject.SetActive(true);
+			DidShow();
 
 			var triggerName = triggerOverride == null ? ShowAnimation : triggerOverride;
 
@@ -51,7 +53,7 @@ namespace VioletUI {
 		}
 
 		internal async UniTask<bool> Hide(CancellationToken token = default, string triggerOverride = null) {
-			// uiEvents.lastSelected = EventSystem.current?.currentSelectedGameObject;
+			WillHide();
 			var triggerName = triggerOverride == null ? HideAnimation : triggerOverride;
 
 			bool ok = true;
@@ -60,12 +62,9 @@ namespace VioletUI {
 			} catch (OperationCanceledException) {
 				ok = false;
 			}
-			// if (HasGate && Release.Flags[gate]) {
-			// 	OnGatedHide?.Invoke();
-			// } else {
-			// 	OnHide?.Invoke();
-			// }
+
 			gameObject.SetActive(false);
+			DidHide();
 
 			return ok;
 		}

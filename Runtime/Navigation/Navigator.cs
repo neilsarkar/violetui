@@ -38,7 +38,7 @@ namespace VioletUI {
 		#endregion
 
 		#region local
-		[NonSerialized] Dictionary<ScreenId, Screen> screens = new Dictionary<ScreenId, Screen>();
+		[NonSerialized] Dictionary<ScreenId, VioletScreen> screens = new Dictionary<ScreenId, VioletScreen>();
 		[NonSerialized] ScreenId lastScreen = ScreenId.None;
 		[NonSerialized] ScreenId currentScreen = ScreenId.None;
 		[NonSerialized] ScreenId currentModal = ScreenId.None;
@@ -137,7 +137,7 @@ namespace VioletUI {
 			Visit(homeScreen);
 		}
 
-		ScreenId ScreenToScreenId(Screen screen) {
+		ScreenId ScreenToScreenId(VioletScreen screen) {
 			ScreenId ret;
 			var slug = ScreenIdGenerator.Sanitize(screen.name);
 			var ok = Enum.TryParse<ScreenId>(slug, out ret);
@@ -153,7 +153,7 @@ namespace VioletUI {
 
 			ScreenId screenId = ScreenId.None;
 			screens.Clear();
-			foreach (Screen screen in GetComponentsInChildren<Screen>(true)) {
+			foreach (VioletScreen screen in GetComponentsInChildren<VioletScreen>(true)) {
 				var isValid = Enum.TryParse(ScreenIdGenerator.Sanitize(screen.name), out screenId);
 				if (!isValid) {
 #if UNITY_EDITOR
@@ -186,10 +186,10 @@ namespace VioletUI {
 
 
 #if UNITY_EDITOR
-		[HideInInspector] public Screen EditingScreen;
+		[HideInInspector] public VioletScreen EditingScreen;
 		[SerializeField, HideInInspector] ScreenId originalHomeScreen;
 
-		public void Edit(Screen screen) {
+		public void Edit(VioletScreen screen) {
 			originalHomeScreen = homeScreen;
 			try {
 				homeScreen = ScreenToScreenId(screen);
@@ -205,8 +205,8 @@ namespace VioletUI {
 			currentScreen = ScreenToScreenId(screen);
 		}
 
-		public void FinishEditing(Screen screen = null) {
-			if (EditingScreen == null) { EditingScreen = gameObject.GetComponentInChildren<Screen>(); }
+		public void FinishEditing(VioletScreen screen = null) {
+			if (EditingScreen == null) { EditingScreen = gameObject.GetComponentInChildren<VioletScreen>(); }
 			if (screen == null) { screen = EditingScreen; }
 			screen.PackPrefab();
 			screen.gameObject.SetActive(false);
@@ -216,7 +216,7 @@ namespace VioletUI {
 
 		public void AddScreen() {
 			var gameObject = new GameObject("Rename Me");
-			var screen = gameObject.AddComponent<Screen>();
+			var screen = gameObject.AddComponent<VioletScreen>();
 			var canvas = gameObject.AddComponent<Canvas>();
 			gameObject.AddComponent<CanvasRenderer>();
 			gameObject.AddComponent<GraphicRaycaster>();
@@ -228,11 +228,13 @@ namespace VioletUI {
 		}
 
 		float lastUpdate;
+		int childCount;
 		void Update() {
 			if (Application.isPlaying) { return; }
-			if (transform.childCount == 0 || transform.childCount == screens.Count) { return; }
+			if (transform.childCount == 0 || transform.childCount != childCount) { return; }
 			if (Time.time - lastUpdate <= .5f) { return; }
 			lastUpdate = Time.time;
+			childCount = transform.childCount;
 			Violet.LogVerbose($"{name} reloading screens and regenerating enums. childCount={transform.childCount} screensCount={screens.Count}");
 			LoadScreens();
 			RegenerateEnums();
@@ -242,18 +244,17 @@ namespace VioletUI {
 		[Title("Advanced")]
 		[ShowIf("Advanced"), Button, GUIColor(Violet.r, Violet.g, Violet.b)]
 		void Regenerate() {
-			Violet.Log($"Regenerating enums...");
+			Violet.LogVerbose($"Regenerating enums...");
 			RegenerateEnums();
-			Violet.Log($"Reloading screens...");
+			Violet.LogVerbose($"Reloading screens...");
 			LoadScreens();
-			Violet.Log($"Done.");
+			Violet.LogVerbose($"Done reloading screens.");
 		}
 
 		void RegenerateEnums() {
-			var screens = GetComponentsInChildren<Screen>(true);
+			var screens = GetComponentsInChildren<VioletScreen>(true);
 			ScreenIdGenerator.Generate(screens);
-			Violet.Log($"Reloading screens...");
-			Violet.Log($"Done.");
+			Violet.LogVerbose($"Done regenerating enums.");
 		}
 #endif
 	}

@@ -12,11 +12,11 @@ namespace VioletUI {
 	public class ScreenIdGenerator {
 		static StringBuilder sb = new StringBuilder();
 
-		public static void Generate(Screen screen) {
-			Generate(new Screen[] {screen});
+		public static void Generate(VioletScreen screen) {
+			Generate(new VioletScreen[] {screen});
 		}
 
-		public static void Generate(Screen[] screens) {
+		public static void Generate(VioletScreen[] screens) {
 			var screenStrings = new List<string>(screens.Length);
 			foreach (var screen in screens) {
 				screenStrings.Add(screen.name);
@@ -25,9 +25,9 @@ namespace VioletUI {
 		}
 
 		public static void Generate(List<string> screens) {
-			var newScreens = Filter(screens);
-			if (newScreens.Count == 0) { return; }
-			AddScreens(newScreens);
+			var newVioletScreens = Filter(screens);
+			if (newVioletScreens.Count == 0) { return; }
+			AddVioletScreens(newVioletScreens);
 		}
 
 		static List<string> Filter(List<string> screens) {
@@ -41,7 +41,7 @@ namespace VioletUI {
 			return ret;
 		}
 
-		static void AddScreens(List<string> screens) {
+		static void AddVioletScreens(List<string> screens) {
 			sb.Clear();
 			sb.AppendLine("//Names are automatically added through ScreenIdGenerator.cs, deletions are done manually :)");
 			sb.AppendLine("namespace VioletUI {");

@@ -31,7 +31,7 @@ namespace VioletUI {
 				return;
 			}
 
-			var screen = gameObject.GetComponent<Screen>();
+			var screen = gameObject.GetComponent<VioletScreen>();
 			if (screen != null) {
 				DrawScreen(screen, rect);
 				return;
@@ -50,7 +50,7 @@ namespace VioletUI {
 			}
 		}
 
-		static void DrawScreen(Screen screen, Rect rect) {
+		static void DrawScreen(VioletScreen screen, Rect rect) {
 			var navigator = screen.transform.parent.GetComponent<Navigator>();
 			if (navigator == null) {
 				Violet.LogWarning($"Unable to find Navigator for {screen.name} - make sure {screen.transform.parent.name} has a Navigator component");
