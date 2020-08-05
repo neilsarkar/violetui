@@ -30,7 +30,7 @@ namespace VioletUI {
 		public class View : View<TState> {
 			protected override TState State => Singleton?.State;
 			protected override TState LastState => Singleton?.LastState;
-			protected override Dispatcher<TState> Dispatcher => Dispatcher;
+			protected override Dispatcher<TState> Dispatcher => Singleton?.Dispatcher;
 		}
 
 		public abstract class RepeatView<T> : RepeatView<TState, T> {
