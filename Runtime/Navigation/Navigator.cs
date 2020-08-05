@@ -184,6 +184,7 @@ namespace VioletUI {
 			OnReady?.Invoke();
 		}
 
+		protected Action<GameObject> OnScreenAdded;
 
 #if UNITY_EDITOR
 		[HideInInspector] public VioletScreen EditingScreen;
@@ -216,14 +217,22 @@ namespace VioletUI {
 
 		public void AddScreen() {
 			var gameObject = new GameObject("Rename Me");
+			gameObject.layer = 5;
 			var screen = gameObject.AddComponent<VioletScreen>();
 			var canvas = gameObject.AddComponent<Canvas>();
 			gameObject.AddComponent<CanvasRenderer>();
 			gameObject.AddComponent<GraphicRaycaster>();
-
 			gameObject.transform.SetParent(transform, false);
 			gameObject.transform.position = new Vector3(0, 0, 0);
-			canvas.renderMode = worldCamera == null ? RenderMode.ScreenSpaceOverlay : RenderMode.ScreenSpaceCamera;
+			gameObject.transform.localScale = new Vector3(1,1,1);
+
+			if (hasCamera) {
+				canvas.renderMode = RenderMode.ScreenSpaceCamera;
+				canvas.worldCamera = worldCamera;
+			} else {
+				canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+			}
+			OnScreenAdded?.Invoke(gameObject);
 			EditingScreen = screen;
 		}
 

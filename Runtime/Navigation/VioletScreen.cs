@@ -14,6 +14,7 @@ using UnityEditor;
 #endif
 
 namespace VioletUI {
+	[RequireComponent(typeof(Animator))]
 	[ExecuteAlways]
 	public class VioletScreen : TidyBehaviour {
 
@@ -85,7 +86,9 @@ namespace VioletUI {
 			if (animator == null) { return new List<string>() { "(add animator component)" }; }
 
 			var animatorController = animator.runtimeAnimatorController as AnimatorController;
-			if (animatorController.parameters.Length == 0) { return new List<string>() { "(add triggers to animator)" }; }
+			if (animatorController == null) { return new List<string>() {"(add animator controller)" }; }
+
+			if (animatorController.parameters.Length == 0) { return new List<string>() { "(add triggers to animator controller)" }; }
 
 			var names = new List<string>() { "None" };
 			foreach (var trigger in animatorController.parameters) {
