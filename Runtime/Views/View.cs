@@ -53,12 +53,11 @@ namespace VioletUI {
 		protected void LogError(string s) { Violet.LogError(s); }
 
 		// convenience accessor
-		protected RectTransform rectTransform;
+		RectTransform rectTransform;
+		protected RectTransform RectTransform => rectTransform != null ? rectTransform : rectTransform = GetComponent<RectTransform>();
 
 		// Internal methods are so that callers don't have to remember to call base. at the beginning of their implementations
-		internal virtual void OnShowInternal() {
-			rectTransform = GetComponent<RectTransform>();
-		}
+		internal virtual void OnShowInternal() {}
 		internal virtual void OnHideInternal() {}
 		internal virtual bool IsDirtyInternal(TState state, TState lastState) {
 			if (!IsDirty(state, lastState)) { throw new Bail("IsDirty=false"); }
