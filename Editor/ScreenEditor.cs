@@ -73,16 +73,16 @@ namespace VioletUI {
 
 		static bool Button(Rect rect, string label, bool isActive = false) {
 			// by default the button is 100% width
-			// we move the left edge to make button 60 pixels wide, right aligned
-			var buttonWidth = 60;
+			// we move the left edge to make button fixed width, right aligned
+			var buttonWidth = 36;
 			rect.xMin = rect.xMax - buttonWidth;
 
 			// extend unity mini button style with small tweaks
 			var style = new GUIStyle(EditorStyles.miniButton);
-			style.padding = new RectOffset(3, 0, 1, 1);
+			style.padding = new RectOffset(0, 2, 1, 1);
 			style.fixedHeight -= 2;
 			style.fontStyle = isActive ? FontStyle.Bold : FontStyle.Normal;
-			style.alignment = TextAnchor.MiddleLeft;
+			style.alignment = TextAnchor.MiddleCenter;
 
 			// set color to violet if active
 			var originalColor = GUI.color;
