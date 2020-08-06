@@ -53,7 +53,7 @@ namespace VioletUI {
 		protected void LogError(string s) { Violet.LogError(s); }
 
 		// convenience accessor
-		RectTransform rectTransform;
+		protected RectTransform rectTransform;
 
 		// Internal methods are so that callers don't have to remember to call base. at the beginning of their implementations
 		internal virtual void OnShowInternal() {
