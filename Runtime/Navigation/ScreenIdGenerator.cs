@@ -62,8 +62,7 @@ namespace VioletUI {
 			}
 			sb.AppendLine("\t}");
 			sb.AppendLine("}");
-			string path = $"{packagePath()}/Runtime/Navigation/ScreenId.cs";
-			File.WriteAllText(path, sb.ToString());
+			File.WriteAllText(packagePath(), sb.ToString());
 			Violet.Log("Regenerating the ScreenId enum, this may take a second to recompile.");
 			AssetDatabase.Refresh();
 		}
@@ -72,10 +71,14 @@ namespace VioletUI {
 			return s.Replace(" ", "");
 		}
 
-		static string scriptPath() {
-			return null;
-		}
 		static string packagePath() {
+			return $"{packageBasePath()}/Runtime/Navigation/ScreenId.cs";
+		}
+
+		static string scriptPath() {
+			return "Assets/Menus/ScreenId.cs";
+		}
+		static string packageBasePath() {
 			foreach (var path in packagePaths) {
 				var paths = Directory.GetDirectories(path, "*violetui*", SearchOption.TopDirectoryOnly);
 				if (paths.Length > 0) { return paths[0];}

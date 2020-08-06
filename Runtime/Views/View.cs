@@ -14,11 +14,11 @@ namespace VioletUI {
 		protected abstract TState LastState { get; }
 
 		/// <summary>
-		/// OnShow is called when the gameObject becomes active in editor or playmode
+		/// OnShow is called when the gameObject becomes active in editor or playmode, prior to first Render.
 		/// </summary>
 		protected virtual void OnShow() { }
 		/// <summary>
-		/// OnHide is called when the gameObject becomes inactive in editor or playmode
+		/// OnHide is called when the gameObject becomes inactive in editor or playmode, after last Render.
 		/// </summary>
 		protected virtual void OnHide() { }
 		/// <summary>
@@ -37,7 +37,7 @@ namespace VioletUI {
 		protected virtual void Render(TState state) { }
 
 		/// <summary>
-		/// dispatcher allows you to send Actions that
+		/// Dispatcher allows you to send Actions that change the State
 		/// </summary>
 		protected virtual Dispatcher<TState> Dispatcher {
 			get {
@@ -52,26 +52,31 @@ namespace VioletUI {
 		protected void LogWarning(string s) { Violet.LogWarning(s); }
 		protected void LogError(string s) { Violet.LogError(s); }
 
+		// convenience accessor
+		RectTransform rectTransform;
+
 		// Internal methods are so that callers don't have to remember to call base. at the beginning of their implementations
-		internal virtual void OnShowInternal() {}
+		internal virtual void OnShowInternal() {
+			rectTransform = GetComponent<RectTransform>();
+		}
 		internal virtual void OnHideInternal() {}
 		internal virtual bool IsDirtyInternal(TState state, TState lastState) {
-			if (!IsDirty(state, lastState)) { throw new Bail(); }
+			if (!IsDirty(state, lastState)) { throw new Bail("IsDirty=false"); }
 			return true;
 		}
 		internal virtual void RenderInternal(TState state, TState lastState) {
 			try {
 				if (gameObject == null) {
 					Warn($"RenderInternal | gameObject was null");
-					throw new Bail();
+					throw new Bail("gameObject is null");
 				}
 			} catch(MissingReferenceException) {
 				Warn($"RenderInternal | MissingReferenceException when trying to access gameObject");
-				throw new Bail();
+				throw new Bail("gameObject is missing");
 			}
 
 			if (lastState != null) {
-				if (!IsDirtyInternal(state, lastState) ) { throw new Bail(); }
+				if (!IsDirtyInternal(state, lastState) ) { throw new Bail("IsDirtyInternal=false"); }
 			}
 
 			Render(state);
@@ -80,9 +85,9 @@ namespace VioletUI {
 		void RenderWrapper(TState state, TState lastState) {
 			try {
 				RenderInternal(state, lastState);
-			} catch (Bail) {
+			} catch (Bail e) {
 				try {
-					Verbose($"{gameObject.name} bailed from render");
+					Verbose($"{gameObject.name} bailed from render - {e.Message}");
 				} catch (MissingReferenceException) {}
 			}
 		}

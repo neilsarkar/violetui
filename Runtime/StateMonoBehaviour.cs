@@ -63,9 +63,17 @@ namespace VioletUI {
 			Singleton = this;
 		}
 
+		protected override void OnDestroy() {
+			base.OnDestroy();
+			RenderShortcut.OnPress -= Render;
+		}
+
 		[Button("Render (shortcut: cmd+;)"), GUIColor(Violet.r, Violet.g, Violet.b)]
 		void Render() {
-			if (State == null) { Violet.LogWarning($"state is null for {name}");}
+			if (State == null) {
+				Violet.LogWarning($"state is null for {name}");
+				return;
+			}
 			State.TriggerChange();
 			CopyState();
 		}

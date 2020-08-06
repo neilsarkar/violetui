@@ -19,8 +19,8 @@ namespace VioletUI {
 
 		internal override bool IsDirtyInternal(TState state, TState lastState) {
 			base.IsDirtyInternal(state, lastState);
-			if (lastState != null && Items.Count == LastItems?.Count) { throw new Bail(); }
-			if (ViewPrefab == null) { throw new Bail(); }
+			if (lastState != null && Items.Count == LastItems?.Count) { throw new Bail($"No change in item count - {Items.Count}=={LastItems?.Count} "); }
+			if (ViewPrefab == null) { throw new Bail($"ViewPrefab is null"); }
 			return true;
 		}
 

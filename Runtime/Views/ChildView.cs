@@ -2,10 +2,13 @@ using System;
 using Dispatch;
 using Sirenix.OdinInspector;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor.Experimental.SceneManagement;
+#endif
 
 namespace VioletUI {
 	public abstract class ChildView<TState, T> : View<TState> where TState : class, IState {
-		protected int Index => transform.GetSiblingIndex();
+		protected int Index => index > -1 ? index : index = GetIndex();
 		protected T Item => parent?.Items == null || parent.Items.Count <= Index ? default(T) : parent.Items[Index];
 		protected T LastItem => LastState == null || parent?.LastItems == null || parent.LastItems.Count <= Index ? default(T) : parent.LastItems[Index];
 
@@ -16,9 +19,6 @@ namespace VioletUI {
 
 		internal override void OnShowInternal() {
 			parent = gameObject.GetComponentInParent<RepeatView<TState, T>>();
-			if (parent == null) {
-				throw new VioletException($"ChildView {gameObject.name} does not have a RepeatView as a parent. Make sure the parent has a component attached that inherits from RepeatView.");
-			}
 		}
 
 		internal override void RenderInternal(TState state, TState lastState) {
@@ -28,10 +28,29 @@ namespace VioletUI {
 
 		internal override bool IsDirtyInternal(TState state, TState lastState) {
 			base.IsDirtyInternal(state, lastState);
-			if (parent == null || parent.Items == null) { throw new Bail(); }
-			if (!IsDirty(Item, LastItem)) { throw new Bail(); }
+			if (parent == null || parent.Items == null) { throw new Bail($"Parent was null - parent={parent} parent.Items={parent?.Items}"); }
+			if (!IsDirty(Item, LastItem)) { throw new Bail($"IsDirty returned false - Item={Item} LastItem={LastItem}"); }
 
 			return true;
+		}
+
+		int index = -1;
+		int GetIndex() {
+			var t = transform;
+			while(t.parent != null) {
+				if (t.parent.GetComponent<RepeatView<TState, T>>() != null) {
+					return t.GetSiblingIndex();
+				}
+				t = t.parent;
+			}
+
+#if UNITY_EDITOR
+			var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
+			if (prefabStage == null) {
+				throw new VioletException($"ChildView {gameObject.name} does not have a RepeatView as a parent. Make sure the parent has a component attached that inherits from RepeatView.");
+			}
+#endif
+			return -1;
 		}
 
 #if UNITY_EDITOR
@@ -40,6 +59,7 @@ namespace VioletUI {
 			if (Application.isPlaying) { return; }
 
 			parent = gameObject.GetComponentInParent<RepeatView<TState, T>>();
+
 		}
 #endif
 	}
