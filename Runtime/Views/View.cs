@@ -69,6 +69,10 @@ namespace VioletUI {
 					Warn($"RenderInternal | gameObject was null");
 					throw new Bail("gameObject is null");
 				}
+				if (!gameObject.activeSelf) {
+					Verbose($"RenderInternal | bailing since {gameObject.name} is not active");
+					throw new Bail($"{gameObject.name} is not active");
+				}
 			} catch(MissingReferenceException) {
 				Warn($"RenderInternal | MissingReferenceException when trying to access gameObject");
 				throw new Bail("gameObject is missing");

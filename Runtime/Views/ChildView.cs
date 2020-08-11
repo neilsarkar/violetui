@@ -8,7 +8,15 @@ using UnityEditor.Experimental.SceneManagement;
 
 namespace VioletUI {
 	public abstract class ChildView<TState, T> : View<TState> where TState : class, IState {
+		/// <summary>
+		/// Index returns this elements index in the parent RepeatView
+		/// </summary>
+		/// <returns>int</returns>
 		protected int Index => index > -1 ? index : index = GetIndex();
+		/// <summary>
+		/// Item returns the element associated with this ChildView
+		/// </summary>
+		/// <returns>T Item</returns>
 		protected T Item => parent?.Items == null || parent.Items.Count <= Index ? default(T) : parent.Items[Index];
 		protected T LastItem => LastState == null || parent?.LastItems == null || parent.LastItems.Count <= Index ? default(T) : parent.LastItems[Index];
 
@@ -39,7 +47,8 @@ namespace VioletUI {
 			var t = transform;
 			while(t.parent != null) {
 				if (t.parent.GetComponent<RepeatView<TState, T>>() != null) {
-					return t.GetSiblingIndex();
+					// account for the first item being the prefab
+					return Math.Max(0, t.GetSiblingIndex()-1);
 				}
 				t = t.parent;
 			}

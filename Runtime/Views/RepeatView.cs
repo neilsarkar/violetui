@@ -37,6 +37,11 @@ namespace VioletUI {
 				return;
 			}
 
+#if UNITY_EDITOR
+			var model = PrefabUtility.InstantiatePrefab(ViewPrefab, transform) as GameObject;
+			model.SetActive(false);
+#endif
+
 			for (int i = 0; i < Items.Count; i++) {
 				var child = Instantiate(ViewPrefab, transform);
 				var view = child.GetComponent<ChildView<TState, T>>();
@@ -44,10 +49,6 @@ namespace VioletUI {
 				view.RenderInternal(State, default(TState));
 			}
 
-#if UNITY_EDITOR
-			var model = PrefabUtility.InstantiatePrefab(ViewPrefab, transform) as GameObject;
-			model.SetActive(false);
-#endif
 		}
 	}
 }
