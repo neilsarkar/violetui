@@ -19,8 +19,8 @@ namespace VioletUI {
 
 			// read screens from .bytes file in case we lost references
 			var screenIds = ScreenIdSerializer.Deserialize();
-			Violet.LogVerbose($"Deserialized {screenIds.Count} screens");
 			if (screenIds == null) { return; }
+			Violet.LogVerbose($"Deserialized {screenIds.Count} screens");
 			bool hasNewScreens = screenIds.Exists((screenId) =>
 				!Enum.TryParse<ScreenId>(screenId.Item1, out _)
 			);
@@ -102,7 +102,7 @@ namespace VioletUI {
 		}
 
 		static string scriptPath() {
-			return "Assets/Menus/ScreenId.cs";
+			return "Assets/Plugins/VioletUI/ScreenId.cs";
 		}
 		static string packageBasePath() {
 			foreach (var path in packagePaths) {

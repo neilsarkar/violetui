@@ -13,6 +13,8 @@ namespace VioletUI {
 	/// Storing and copying a .cs file wouldn't work since it would cause compile errors when the file was duplicated.
 	/// </summary>
 	public class ScreenIdSerializer {
+		const string basePath = "Assets/Plugins/VioletUI";
+
 		public static void Serialize() {
 			// put enum into a list of strings and ints
 			List<Tuple<string, int>> screenIds = new List<Tuple<string, int>>();
@@ -26,13 +28,13 @@ namespace VioletUI {
 
 		public static void Serialize(List<Tuple<string, int>> screenIds) {
 			// create menu if it doesn't exist
-			if (!Directory.Exists("Assets/Menus")) {
-				Directory.CreateDirectory("Assets/Menus");
+			if (!Directory.Exists(basePath)) {
+				Directory.CreateDirectory(basePath);
 			}
 
 			// serialize tuples to binary file
 			var formatter = new BinaryFormatter();
-			using(var fs = new FileStream("Assets/Menus/ScreenIds.bytes", FileMode.Create)) {
+			using(var fs = new FileStream($"{basePath}/ScreenIds.bytes", FileMode.Create)) {
 				formatter.Serialize(fs, screenIds);
 			}
 		}
@@ -41,8 +43,8 @@ namespace VioletUI {
 		public static List<Tuple<string, int>> Deserialize() {
 			var formatter = new BinaryFormatter();
 			List<Tuple<string, int>> screenIds;
-			if (!File.Exists("Assets/Menus/ScreenIds.bytes")) { return null; }
-			using(var fs = new FileStream("Assets/Menus/ScreenIds.bytes", FileMode.Open)) {
+			if (!File.Exists($"{basePath}/ScreenIds.bytes")) { return null; }
+			using(var fs = new FileStream($"{basePath}/ScreenIds.bytes", FileMode.Open)) {
 				screenIds = formatter.Deserialize(fs) as List<Tuple<string, int>>;
 			}
 			return screenIds;

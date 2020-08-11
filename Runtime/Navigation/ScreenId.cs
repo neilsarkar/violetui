@@ -2,5 +2,8 @@
 namespace VioletUI {
 	public enum ScreenId {
 		None = 0,
+		ScreenA = 1,
+		ScreenB = 2,
+		Showhide = 3,
 	}
 }
