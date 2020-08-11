@@ -1,6 +1,6 @@
 {
   "name": "com.neilsarkar.violetui",
-  "version": "0.1.67",
+  "version": "0.1.68",
   "displayName": "Violet UI",
   "description": "State-based rendering with live updates in the Unity Editor",
   "unity": "2019.4",

@@ -74,7 +74,9 @@ namespace VioletUI {
 				Violet.LogWarning($"state is null for {name}");
 				return;
 			}
+			View.ForceRender = true;
 			State.TriggerChange();
+			View.ForceRender = false;
 			CopyState();
 		}
 

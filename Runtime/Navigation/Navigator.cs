@@ -184,8 +184,6 @@ namespace VioletUI {
 			OnReady?.Invoke();
 		}
 
-		protected Action<GameObject> OnScreenAdded;
-
 #if UNITY_EDITOR
 		[HideInInspector] public VioletScreen EditingScreen;
 		[SerializeField, HideInInspector] ScreenId originalHomeScreen;
@@ -232,9 +230,11 @@ namespace VioletUI {
 			} else {
 				canvas.renderMode = RenderMode.ScreenSpaceOverlay;
 			}
-			OnScreenAdded?.Invoke(gameObject);
+			OnScreenAdded(gameObject);
 			EditingScreen = screen;
 		}
+
+		protected virtual void OnScreenAdded(GameObject gameObject) {}
 
 		float lastUpdate;
 		int childCount;

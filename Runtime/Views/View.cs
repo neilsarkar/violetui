@@ -91,8 +91,9 @@ namespace VioletUI {
 			}
 		}
 
+		internal static bool ForceRender;
 		void State_OnChange() {
-			RenderWrapper(State, LastState);
+			RenderWrapper(State, ForceRender ? default(TState) : LastState);
 		}
 
 		void OnEnable() {
