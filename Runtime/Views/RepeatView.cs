@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using Dispatch;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace VioletUI {
 	public abstract class RepeatView<TState, T> : View<TState> where TState : class, IState {
@@ -40,6 +43,11 @@ namespace VioletUI {
 				if (view == null) {continue;}
 				view.RenderInternal(State, default(TState));
 			}
+
+#if UNITY_EDITOR
+			var model = PrefabUtility.InstantiatePrefab(ViewPrefab, transform) as GameObject;
+			model.SetActive(false);
+#endif
 		}
 	}
 }
