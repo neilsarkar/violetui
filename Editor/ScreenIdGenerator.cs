@@ -5,12 +5,29 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEditor;
-using UnityEditor.Compilation;
 using UnityEngine;
 
 namespace VioletUI {
+	[InitializeOnLoad]
 	public class ScreenIdGenerator {
 		static StringBuilder sb = new StringBuilder();
+
+		static ScreenIdGenerator() {
+			// when unity starts up, add hook to allow Navigator to call this
+			Navigator.WantsRegenerate -= Generate;
+			Navigator.WantsRegenerate += Generate;
+
+			// read screens from .bytes file in case we lost references
+			var screenIds = ScreenIdSerializer.Deserialize();
+			Violet.LogVerbose($"Deserialized {screenIds.Count} screens");
+			if (screenIds == null) { return; }
+			bool hasNewScreens = screenIds.Exists((screenId) =>
+				!Enum.TryParse<ScreenId>(screenId.Item1, out _)
+			);
+			Violet.LogVerbose($"hasNewScreens={hasNewScreens}");
+			if (!hasNewScreens) { return; }
+			WriteScreenIds(screenIds);
+		}
 
 		public static void Generate(VioletScreen screen) {
 			Generate(new VioletScreen[] {screen});
@@ -34,7 +51,7 @@ namespace VioletUI {
 			var ret = new List<string>();
 			foreach (var screen in screens.Distinct()) {
 				if (screen == null) { continue; }
-				var name = Sanitize(screen);
+				var name = VioletScreen.Sanitize(screen);
 				if (Enum.TryParse<ScreenId>(name, out _)) { continue; }
 				ret.Add(name);
 			}
@@ -42,33 +59,42 @@ namespace VioletUI {
 		}
 
 		static void AddVioletScreens(List<string> screens) {
-			sb.Clear();
-			sb.AppendLine("//Names are automatically added through ScreenIdGenerator.cs, deletions are done manually :)");
-			sb.AppendLine("namespace VioletUI {");
-			sb.AppendLine("\tpublic enum ScreenId {");
-			sb.AppendLine("\t\tNone = 0,");
+			// always include None as the default ScreenId
+			var screenIds = new List<Tuple<string, int>>() {};
 
 			// write all existing Enum values - note that unused screens
 			// will have to be deleted manually. this is to avoid losing references.
 			foreach (ScreenId screenId in Enum.GetValues(typeof(ScreenId))) {
-				if (screenId == ScreenId.None) { continue; }
-				sb.AppendLine($"\t\t{Enum.GetName(typeof(ScreenId), screenId)} = {(int)screenId},");
+				screenIds.Add(new Tuple<string, int>(
+					Enum.GetName(typeof(ScreenId), screenId), (int)screenId
+				));
 			}
 
-			// write any new screen names with incrementing ids
+			// write new screen names with incrementing ids
 			var nextId = Enum.GetValues(typeof(ScreenId)).Cast<int>().Max() + 1;
 			foreach (var screen in screens) {
-				sb.AppendLine($"\t\t{screen} = {nextId++},");
+				screenIds.Add(new Tuple<string, int>(
+					screen, nextId++
+				));
+			}
+
+			WriteScreenIds(screenIds);
+		}
+
+		static void WriteScreenIds(List<Tuple<string, int>> screenIds) {
+			sb.Clear();
+			sb.AppendLine("//Names are automatically added through ScreenIdGenerator.cs, deletions are done manually :)");
+			sb.AppendLine("namespace VioletUI {");
+			sb.AppendLine("\tpublic enum ScreenId {");
+			foreach (var screenId in screenIds) {
+				sb.AppendLine($"\t\t{screenId.Item1} = {screenId.Item2},");
 			}
 			sb.AppendLine("\t}");
 			sb.AppendLine("}");
 			File.WriteAllText(packagePath(), sb.ToString());
 			Violet.Log("Regenerating the ScreenId enum, this may take a second to recompile.");
 			AssetDatabase.Refresh();
-		}
-
-		public static string Sanitize(string s) {
-			return s.Replace(" ", "");
+			ScreenIdSerializer.Serialize(screenIds);
 		}
 
 		static string packagePath() {

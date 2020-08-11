@@ -5,8 +5,8 @@ using UnityEngine;
 using Sirenix.OdinInspector;
 using System.Threading;
 using UniRx.Async;
-#if UNITY_EDITOR
 using UnityEngine.UI;
+#if UNITY_EDITOR
 using UnityEditor;
 #endif
 
@@ -139,7 +139,7 @@ namespace VioletUI {
 
 		ScreenId ScreenToScreenId(VioletScreen screen) {
 			ScreenId ret;
-			var slug = ScreenIdGenerator.Sanitize(screen.name);
+			var slug = VioletScreen.Sanitize(screen.name);
 			var ok = Enum.TryParse<ScreenId>(slug, out ret);
 
 			if (!ok) {
@@ -148,17 +148,18 @@ namespace VioletUI {
 			return ret;
 		}
 
+
 		void LoadScreens() {
 			if (transform.childCount == 0) { return; }
 
 			ScreenId screenId = ScreenId.None;
 			screens.Clear();
 			foreach (VioletScreen screen in GetComponentsInChildren<VioletScreen>(true)) {
-				var isValid = Enum.TryParse(ScreenIdGenerator.Sanitize(screen.name), out screenId);
+				var isValid = Enum.TryParse(VioletScreen.Sanitize(screen.name), out screenId);
 				if (!isValid) {
-#if UNITY_EDITOR
-					Violet.LogWarning($"Couldn't find {screen.name}, regenerating. Try pressing play again. ScreenId contains {string.Join(", ", Enum.GetNames(typeof(ScreenId)))}");
 					RegenerateEnums();
+					Violet.LogWarning($"Couldn't find {screen.name}, regenerating. Try pressing play again. ScreenId contains {string.Join(", ", Enum.GetNames(typeof(ScreenId)))}");
+#if UNITY_EDITOR
 					EditorApplication.ExitPlaymode();
 #else
 					throw new VioletException($"{screen.name} does not have a valid ScreenId. ScreenId contains {string.Join(", ", Enum.GetNames(typeof(ScreenId)))}"");
@@ -222,7 +223,7 @@ namespace VioletUI {
 			gameObject.AddComponent<GraphicRaycaster>();
 			gameObject.transform.SetParent(transform, false);
 			gameObject.transform.position = new Vector3(0, 0, 0);
-			gameObject.transform.localScale = new Vector3(1,1,1);
+			gameObject.transform.localScale = new Vector3(1, 1, 1);
 
 			if (hasCamera) {
 				canvas.renderMode = RenderMode.ScreenSpaceCamera;
@@ -234,7 +235,7 @@ namespace VioletUI {
 			EditingScreen = screen;
 		}
 
-		protected virtual void OnScreenAdded(GameObject gameObject) {}
+		protected virtual void OnScreenAdded(GameObject gameObject) { }
 
 		float lastUpdate;
 		int childCount;
@@ -260,10 +261,10 @@ namespace VioletUI {
 			Violet.LogVerbose($"Done reloading screens.");
 		}
 
+		// TODO: move all of this to the editor assembly
+		public static Action<VioletScreen[]> WantsRegenerate;
 		void RegenerateEnums() {
-			var screens = GetComponentsInChildren<VioletScreen>(true);
-			ScreenIdGenerator.Generate(screens);
-			Violet.LogVerbose($"Done regenerating enums.");
+			WantsRegenerate?.Invoke(GetComponentsInChildren<VioletScreen>(true));
 		}
 #endif
 	}

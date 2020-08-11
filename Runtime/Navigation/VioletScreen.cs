@@ -104,8 +104,11 @@ namespace VioletUI {
 			EditorSceneManager.sceneSaved += EditorSceneManager_sceneSaved;
 		}
 
-		// [SerializeField, HideInInspector]
 		string prefabPath = "";
+
+		public static string Sanitize(string s) {
+			return s.Replace(" ", "");
+		}
 
 		public void PackPrefab() {
 			var path = string.IsNullOrEmpty(prefabPath) ? $"Assets/Menus/{name}.prefab" : prefabPath;
