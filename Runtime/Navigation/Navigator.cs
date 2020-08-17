@@ -100,7 +100,7 @@ namespace VioletUI {
 			currentModal = screenId;
 		}
 
-		public void CloseModal() {
+		public void HideModal() {
 			if (currentModal == ScreenId.None) { return; }
 			screens[currentModal].gameObject.SetActive(false);
 			OnModalHide?.Invoke(currentModal);
