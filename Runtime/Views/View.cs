@@ -102,6 +102,7 @@ namespace VioletUI {
 
 		void OnEnable() {
 			if (State == null) { if (Application.isPlaying) { Warn($"State is null in {name} OnEnable"); } return; }
+			State.OnChange -= State_OnChange;
 			State.OnChange += State_OnChange;
 			OnShowInternal();
 			OnShow();

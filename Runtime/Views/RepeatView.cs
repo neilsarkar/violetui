@@ -37,18 +37,25 @@ namespace VioletUI {
 				return;
 			}
 
-#if UNITY_EDITOR
-			var model = PrefabUtility.InstantiatePrefab(ViewPrefab, transform) as GameObject;
-			model.SetActive(false);
-#endif
 
 			for (int i = 0; i < Items.Count; i++) {
-				var child = Instantiate(ViewPrefab, transform);
+				var child = CreateChild(i);
 				var view = child.GetComponent<ChildView<TState, T>>();
 				if (view == null) {continue;}
-				view.RenderInternal(State, default(TState));
+				try {
+					view.RenderInternal(State, default(TState));
+				} catch (Bail) {}
 			}
 
+		}
+
+		GameObject CreateChild(int index) {
+#if UNITY_EDITOR
+				if (index == 0) {
+					return PrefabUtility.InstantiatePrefab(ViewPrefab, transform) as GameObject;
+				}
+#endif
+				return Instantiate(ViewPrefab, transform);
 		}
 	}
 }
