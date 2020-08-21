@@ -48,7 +48,7 @@ namespace VioletUI {
 			while(t.parent != null) {
 				if (t.parent.GetComponent<RepeatView<TState, T>>() != null) {
 					// account for the first item being the prefab
-					return Math.Max(0, t.GetSiblingIndex()-1);
+					return Math.Max(0, t.GetSiblingIndex());
 				}
 				t = t.parent;
 			}
