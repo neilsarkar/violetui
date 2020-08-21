@@ -50,12 +50,7 @@ namespace VioletUI {
 		}
 
 		GameObject CreateChild(int index) {
-#if UNITY_EDITOR
-				if (index == 0) {
-					return PrefabUtility.InstantiatePrefab(ViewPrefab, transform) as GameObject;
-				}
-#endif
-				return Instantiate(ViewPrefab, transform);
+			return Instantiate(ViewPrefab, transform);
 		}
 	}
 }
