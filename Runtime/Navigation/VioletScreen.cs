@@ -80,6 +80,10 @@ namespace VioletUI {
 			return true;
 		}
 
+		public static string Sanitize(string s) {
+			return s.Replace(" ", "");
+		}
+
 #if UNITY_EDITOR
 		List<string> TriggerNames() {
 			var animator = GetComponent<Animator>();
@@ -105,10 +109,6 @@ namespace VioletUI {
 		}
 
 		string prefabPath = "";
-
-		public static string Sanitize(string s) {
-			return s.Replace(" ", "");
-		}
 
 		public void PackPrefab() {
 			var path = string.IsNullOrEmpty(prefabPath) ? $"Assets/Menus/{name}.prefab" : prefabPath;

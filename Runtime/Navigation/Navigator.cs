@@ -162,7 +162,7 @@ namespace VioletUI {
 #if UNITY_EDITOR
 					EditorApplication.ExitPlaymode();
 #else
-					throw new VioletException($"{screen.name} does not have a valid ScreenId. ScreenId contains {string.Join(", ", Enum.GetNames(typeof(ScreenId)))}"");
+					throw new VioletException($"{screen.name} does not have a valid ScreenId. ScreenId contains {string.Join(", ", Enum.GetNames(typeof(ScreenId)))}");
 #endif
 				}
 
@@ -266,6 +266,8 @@ namespace VioletUI {
 		void RegenerateEnums() {
 			WantsRegenerate?.Invoke(GetComponentsInChildren<VioletScreen>(true));
 		}
+#else
+		void RegenerateEnums() {}
 #endif
 	}
 }

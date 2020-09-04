@@ -62,5 +62,5 @@ namespace VioletUI {
 			isAutosaving = false;
 		}
 	}
-	#endif
 }
+#endif
