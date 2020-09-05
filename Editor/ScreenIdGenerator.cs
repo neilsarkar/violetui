@@ -9,13 +9,15 @@ using UnityEngine;
 
 namespace VioletUI {
 	[InitializeOnLoad]
-	public class ScreenIdGenerator {
+	public class ScreenIdGenerator : AssetPostprocessor {
 		static StringBuilder sb = new StringBuilder();
 
 		static ScreenIdGenerator() {
+			UnityEngine.Debug.Log($"INITIALIZEONLOAD STATIC CONSTRUCTOR");
 			// when unity starts up, add hook to allow Navigator to call this
 			Navigator.WantsRegenerate -= Generate;
 			Navigator.WantsRegenerate += Generate;
+
 
 			// read screens from .bytes file in case we lost references
 			var screenIds = ScreenIdSerializer.Deserialize();
@@ -27,6 +29,20 @@ namespace VioletUI {
 			Violet.LogVerbose($"hasNewScreens={hasNewScreens}");
 			if (!hasNewScreens) { return; }
 			WriteScreenIds(screenIds);
+		}
+
+		public static void OnPostProcessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths) {
+			UnityEngine.Debug.Log($"POSTPROCESS ALL ASSETS");
+		}
+
+		[UnityEditor.Callbacks.DidReloadScripts]
+		private static void OnScriptsReloaded() {
+			UnityEngine.Debug.Log($"ONSCRIPTSRELOADED");
+		}
+
+		[InitializeOnLoadMethod]
+		public static void Poopersnatch() {
+			UnityEngine.Debug.Log("POOPERSNATCH");
 		}
 
 		public static void Generate(VioletScreen screen) {

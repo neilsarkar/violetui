@@ -34,7 +34,7 @@ public static class Violet {
 	/// <param name="s"></param>
 	public static void LogVerbose(string s) {
 #if VIOLET_VERBOSE
-		Log($"{Color("verbose | ")}{s}");
+		Log($"{Color("VioletUI.verbose | ")}{s}");
 #endif
 	}
 
