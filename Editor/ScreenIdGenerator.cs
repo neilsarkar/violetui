@@ -18,7 +18,6 @@ namespace VioletUI {
 			Navigator.WantsRegenerate -= Generate;
 			Navigator.WantsRegenerate += Generate;
 
-
 			// read screens from .bytes file in case we lost references
 			var screenIds = ScreenIdSerializer.Deserialize();
 			if (screenIds == null) { return; }
@@ -97,7 +96,7 @@ namespace VioletUI {
 			WriteScreenIds(screenIds);
 		}
 
-		static void WriteScreenIds(List<Tuple<string, int>> screenIds) {
+		public static void WriteScreenIds(List<Tuple<string, int>> screenIds) {
 			sb.Clear();
 			sb.AppendLine("//Names are automatically added through ScreenIdGenerator.cs, deletions are done manually :)");
 			sb.AppendLine("namespace VioletUI {");
