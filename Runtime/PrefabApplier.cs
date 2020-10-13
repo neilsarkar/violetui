@@ -63,4 +63,9 @@ namespace VioletUI {
 		}
 	}
 }
+#else
+using UnityEngine;
+namespace VioletUI {
+	public class PrefabApplier : MonoBehaviour {}
+}
 #endif
