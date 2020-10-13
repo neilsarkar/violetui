@@ -2,6 +2,10 @@ using System;
 using System.Runtime.ExceptionServices;
 using Dispatch;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.Experimental.SceneManagement;
+#endif
 
 namespace VioletUI {
 	[ExecuteAlways]
@@ -73,9 +77,20 @@ namespace VioletUI {
 					Verbose($"RenderInternal | bailing since {gameObject.name} is not active");
 					throw new Bail($"{gameObject.name} is not active");
 				}
+#if UNITY_EDITOR
+				var stage = PrefabStageUtility.GetCurrentPrefabStage();
+				if (stage != null && stage.IsPartOfPrefabContents(gameObject)) {
+					Verbose($"RenderInternal | bailing since {gameObject.name} is in a prefab");
+					throw new Bail($"{gameObject.name} is in a prefab");
+				}
+#endif
 			} catch(MissingReferenceException) {
 				Warn($"RenderInternal | MissingReferenceException when trying to access gameObject");
 				throw new Bail("gameObject is missing");
+			} catch(InvalidOperationException e) {
+				Warn($"RenderInternal | {e}");
+				throw new Bail("gameObject is missing");
+
 			}
 
 			if (lastState != null) {
@@ -104,6 +119,10 @@ namespace VioletUI {
 			if (State == null) { if (Application.isPlaying) { Warn($"State is null in {name} OnEnable"); } return; }
 			State.OnChange -= State_OnChange;
 			State.OnChange += State_OnChange;
+#if UNITY_EDITOR
+			EditorApplication.update -= EditorUpdate;
+			EditorApplication.update += EditorUpdate;
+#endif
 			OnShowInternal();
 			OnShow();
 			RenderWrapper(State, default(TState));
@@ -112,6 +131,9 @@ namespace VioletUI {
 		void OnDisable() {
 			if (State == null) { if (Application.isPlaying) { Warn($"State is null in {name} OnDisable"); } return; }
 			State.OnChange -= State_OnChange;
+#if UNITY_EDITOR
+			EditorApplication.update -= EditorUpdate;
+#endif
 			OnHideInternal();
 			OnHide();
 		}
@@ -123,15 +145,21 @@ namespace VioletUI {
 		}
 
 		void Verbose(string msg) {
-#if VIOLETDEV && VIOLET_VERBOSE
-			Violet.Log(msg);
+#if VIOLET_VERBOSE
+			Violet.LogVerbose(msg);
 #endif
 		}
 
 #if UNITY_EDITOR
-		public virtual void Update() {
+		protected virtual void EditorUpdate() {
 			if (Application.isPlaying) { return; }
 			if (State == null) { Warn("State is null"); return; }
+			try {
+				if (gameObject == null);
+			} catch(MissingReferenceException e) {
+				EditorApplication.update -= EditorUpdate;
+				return;
+			}
 			State.OnChange -= State_OnChange;
 			State.OnChange += State_OnChange;
 		}

@@ -63,11 +63,12 @@ namespace VioletUI {
 		}
 
 #if UNITY_EDITOR
-		public override void Update() {
-			base.Update();
+		protected override void EditorUpdate() {
+			base.EditorUpdate();
 			if (Application.isPlaying) { return; }
-
-			parent = gameObject.GetComponentInParent<RepeatView<TState, T>>();
+			try {
+				parent = gameObject.GetComponentInParent<RepeatView<TState, T>>();
+			} catch(MissingReferenceException) {}
 
 		}
 #endif
