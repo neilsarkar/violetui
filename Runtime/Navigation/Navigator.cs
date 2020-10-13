@@ -51,11 +51,20 @@ namespace VioletUI {
 			VisitFirstScreen();
 		}
 
+		void OnDisable() {
+			if (canceler != null) {
+				canceler.Cancel();
+				canceler.Dispose();
+			}
+			canceler = null;
+		}
+
 		/// <summary>
 		/// Visit takes a <see cref="ScreenId"/> and transitions the menu to that scene.
 		/// </summary>
 		/// <param name="screenId"></param>
 		public async void Visit(ScreenId screenId) {
+			Violet.LogVerbose($"Visiting {screenId}");
 			if (!screens.ContainsKey(screenId)) {
 				throw new VioletException($"Tried to visit {screenId} but it doesn't exist in the current scene. You'll want to add the {screenId} prefab to this scene or to the MenuBuilder prefab. Or change the Home Screen to the screen you want.");
 			}
@@ -92,6 +101,12 @@ namespace VioletUI {
 			}
 		}
 
+		/// <summary>
+		/// Show another screen in addition to the current screen.
+		///
+		/// It fires <see cref="OnModalShow" /> prior to setting the screen to active
+		/// </summary>
+		/// <param name="screenId">Auto-generated id of screen to show as modal</param>
 		public void ShowModal(ScreenId screenId) {
 			// we have to call this before setting things to active because
 			// it causes all input listeners to unsubscribe
@@ -100,11 +115,32 @@ namespace VioletUI {
 			currentModal = screenId;
 		}
 
+		/// <summary>
+		/// Hide the currently shown modal.
+		///
+		/// It fires <see cref="OnModalHide" /> after setting the modal to inactive.
+		/// </summary>
 		public void HideModal() {
-			if (currentModal == ScreenId.None) { return; }
+			if (currentModal == ScreenId.None) { Violet.LogWarning("Called HideModal but there is no current modal - check if HideModal is called twice or called before ShowModal"); return; }
 			screens[currentModal].gameObject.SetActive(false);
 			OnModalHide?.Invoke(currentModal);
 			currentModal = ScreenId.None;
+		}
+
+		/// <summary>
+		/// Show an overlay screen in addition to the current screen. Triggers no events.
+		/// </summary>
+		/// <param name="screenId">id of screen to set active</param>
+		public void ShowOverlay(ScreenId screenId) {
+			screens[screenId].gameObject.SetActive(true);
+		}
+
+		/// <summary>
+		/// Show an overlay screen in addition to the current screen. Triggers no events.
+		/// </summary>
+		/// <param name="screenId">id of screen to set inactive</param>
+		public void HideOverlay(ScreenId screenId) {
+			screens[screenId].gameObject.SetActive(false);
 		}
 
 		// Sigh.
