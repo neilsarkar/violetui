@@ -1,8 +1,13 @@
-# Changelog
-All notable changes to this project will be documented in this file.
+## [0.1.73] - 2020-10-13
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+### Added
+- Navigator.ShowOverlay
+- Navigator.HideOverlay
+
+### Changed
+- View now uses EditorUpdate instead of magic method Update, allowing subclasses to define the method themselves without using an override in editor.
+- PrefabApplier no longer breaks builds :grimacing:
+- StateMonoBehaviour makes all magic methods virtual and overridable
 
 ## [0.1.72] - 2020-09-04
 
