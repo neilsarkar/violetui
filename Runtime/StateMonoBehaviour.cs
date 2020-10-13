@@ -45,19 +45,17 @@ namespace VioletUI {
 			protected override Dispatcher<TState> Dispatcher => Singleton?.Dispatcher;
 		}
 
-		void Awake() {
+		protected virtual void Awake() {
 			Singleton = this;
 			CopyState();
 		}
 
 #if UNITY_EDITOR
-		void OnValidate() {
+		protected virtual void OnValidate() {
 			Render();
 		}
 
-		void Update() {
-			if (Application.isPlaying) { return; }
-
+		protected virtual void Update() {
 			RenderShortcut.OnPress -= Render;
 			RenderShortcut.OnPress += Render;
 			Singleton = this;
@@ -66,10 +64,11 @@ namespace VioletUI {
 		protected override void OnDestroy() {
 			base.OnDestroy();
 			RenderShortcut.OnPress -= Render;
+			Singleton = null;
 		}
 
 		[Button("Render (shortcut: cmd+;)"), GUIColor(Violet.r, Violet.g, Violet.b)]
-		void Render() {
+		protected void Render() {
 			if (State == null) {
 				Violet.LogWarning($"state is null for {name}");
 				return;

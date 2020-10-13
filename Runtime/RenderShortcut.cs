@@ -11,7 +11,7 @@ namespace VioletUI {
 
 		[Shortcut("VioletRenderShortcut", KeyCode.Semicolon, ShortcutModifiers.Action)]
 		public static void Press() {
-			Violet.LogVerbose("Rendering from shortcut press");
+			Violet.Log("Rendering from shortcut press");
 			OnPress?.Invoke();
 		}
 	}
