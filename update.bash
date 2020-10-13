@@ -15,8 +15,9 @@ namespace VioletUI {
 }
 EOF
 
-npm version patch
+[[ -z "$1" ]] && { echo "Not updating without changelog."; exit 0; }
 
-git commit -am "Bump version number"
-git push
-
+{ printf "## [0.1.]"; printf "$1"; cat CHANGELOG.md; } > tmp.md && mv tmp.md CHANGELOG.md
+# $(date +%F)
+# npm version patch
+# git push
