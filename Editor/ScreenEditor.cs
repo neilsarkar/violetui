@@ -51,6 +51,8 @@ namespace VioletUI {
 		}
 
 		static void DrawScreen(VioletScreen screen, Rect rect) {
+			// prefab mode
+			if (screen.transform.parent == null) { return; }
 			var navigator = screen.transform.parent.GetComponent<Navigator>();
 			if (navigator == null) {
 				Violet.LogWarning($"Unable to find Navigator for {screen.name} - make sure {screen.transform.parent.name} has a Navigator component");
