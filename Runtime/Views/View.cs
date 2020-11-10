@@ -110,7 +110,10 @@ namespace VioletUI {
 			}
 		}
 
+// in builds, ForceRender never gets used
+#pragma warning disable CS0649
 		internal static bool ForceRender;
+#pragma warning restore CS0649
 		void State_OnChange() {
 			RenderWrapper(State, ForceRender ? default(TState) : LastState);
 		}
@@ -155,8 +158,8 @@ namespace VioletUI {
 			if (Application.isPlaying) { return; }
 			if (State == null) { Warn("State is null"); return; }
 			try {
-				if (gameObject == null);
-			} catch(MissingReferenceException e) {
+				if (gameObject == null) {}
+			} catch(MissingReferenceException) {
 				EditorApplication.update -= EditorUpdate;
 				return;
 			}

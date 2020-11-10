@@ -12,12 +12,12 @@ namespace VioletUI {
 		/// Index returns this elements index in the parent RepeatView
 		/// </summary>
 		/// <returns>int</returns>
-		protected int Index => index > -1 ? index : index = GetIndex();
+		public int Index => index > -1 ? index : index = GetIndex();
 		/// <summary>
 		/// Item returns the element associated with this ChildView
 		/// </summary>
 		/// <returns>T Item</returns>
-		protected T Item => parent?.Items == null || parent.Items.Count <= Index ? default(T) : parent.Items[Index];
+		public T Item => parent?.Items == null || parent.Items.Count <= Index ? default(T) : parent.Items[Index];
 		protected T LastItem => LastState == null || parent?.LastItems == null || parent.LastItems.Count <= Index ? default(T) : parent.LastItems[Index];
 
 		protected virtual void Render(T item, int index, TState state) {}
