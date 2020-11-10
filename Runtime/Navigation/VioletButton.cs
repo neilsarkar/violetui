@@ -17,14 +17,17 @@ namespace VioletUI {
 		}
 
 		protected override void OnEnable() {
+			base.OnEnable();
 			this.onClick.AddListener(Submit);
 		}
 
 		protected override void OnDisable() {
+			base.OnDisable();
 			this.onClick.RemoveListener(Submit);
 		}
 
 		protected override void OnDestroy() {
+			base.OnDestroy();
 			this.onClick.RemoveListener(Submit);
 		}
 
