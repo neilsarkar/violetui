@@ -1,3 +1,12 @@
+## [0.1.74] - 2020-11-10
+
+### Added
+- Navigator 'Lose' button to discard changes and revert currently edited prefab
+- Navigator 'Delete unused screens'
+
+### Changed
+- ScreenId is now serialized to json instead of binary so that it can be edited by hand
+
 ## [0.1.73] - 2020-10-13
 
 ### Added
