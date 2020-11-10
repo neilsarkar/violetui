@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace VioletUI {
 	/// <summary>
@@ -14,40 +13,44 @@ namespace VioletUI {
 	/// </summary>
 	public class ScreenIdSerializer {
 		const string basePath = "Assets/Plugins/VioletUI";
+		static string path => $"{basePath}/ScreenIds.json";
 
-		public static void Serialize() {
-			// put enum into a list of strings and ints
-			List<Tuple<string, int>> screenIds = new List<Tuple<string, int>>();
-			foreach (ScreenId screenId in Enum.GetValues(typeof(ScreenId))) {
-				screenIds.Add(new Tuple<string, int>(
-					Enum.GetName(typeof(ScreenId), screenId), (int)screenId
-				));
-			}
-			Serialize(screenIds);
-		}
+		public static void Serialize(List<ScreenIdJson> screenIds) {
+			if (!Directory.Exists(basePath)) { Directory.CreateDirectory(basePath); }
 
-		public static void Serialize(List<Tuple<string, int>> screenIds) {
-			// create menu if it doesn't exist
-			if (!Directory.Exists(basePath)) {
-				Directory.CreateDirectory(basePath);
-			}
-
-			// serialize tuples to binary file
-			var formatter = new BinaryFormatter();
-			using(var fs = new FileStream($"{basePath}/ScreenIds.bytes", FileMode.Create)) {
-				formatter.Serialize(fs, screenIds);
-			}
+			var json = UnityEngine.JsonUtility.ToJson(new ScreenIdsJson(screenIds), true);
+			File.WriteAllText(path, json);
 		}
 
 
-		public static List<Tuple<string, int>> Deserialize() {
-			var formatter = new BinaryFormatter();
-			List<Tuple<string, int>> screenIds;
-			if (!File.Exists($"{basePath}/ScreenIds.bytes")) { return null; }
-			using(var fs = new FileStream($"{basePath}/ScreenIds.bytes", FileMode.Open)) {
-				screenIds = formatter.Deserialize(fs) as List<Tuple<string, int>>;
+		public static List<ScreenIdJson> Deserialize() {
+			if (!File.Exists(path)) {
+				return new List<ScreenIdJson>() {
+					new ScreenIdJson("None", 0)
+				};
 			}
-			return screenIds;
+			var json = UnityEngine.JsonUtility.FromJson<ScreenIdsJson>(File.ReadAllText(path));
+			return json.screenIds;
+		}
+	}
+
+	[Serializable]
+	public struct ScreenIdJson {
+		public string name;
+		public int id;
+
+		public ScreenIdJson(string name, int id) {
+			this.name = name;
+			this.id = id;
+		}
+	}
+
+	[Serializable]
+	public struct ScreenIdsJson {
+		public List<ScreenIdJson> screenIds;
+
+		public ScreenIdsJson(List<ScreenIdJson> screenIds) {
+			this.screenIds = screenIds;
 		}
 	}
 }

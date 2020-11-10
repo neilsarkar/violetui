@@ -14,35 +14,43 @@ namespace VioletUI {
 
 		static ScreenIdGenerator() {
 			// when unity starts up, add hook to allow Navigator to call this
-			Navigator.WantsRegenerate -= Generate;
-			Navigator.WantsRegenerate += Generate;
+			Navigator.WantsAddScreens -= AddScreens;
+			Navigator.WantsAddScreens += AddScreens;
+			Navigator.WantsReplaceScreens -= ReplaceScreens;
+			Navigator.WantsReplaceScreens += ReplaceScreens;
 
-			// read screens from .bytes file in case we lost references
+			// read screens from .json file in case we lost references
 			var screenIds = ScreenIdSerializer.Deserialize();
 			if (screenIds == null) { return; }
 			Violet.LogVerbose($"Deserialized {screenIds.Count} screens");
 			bool hasNewScreens = screenIds.Exists((screenId) =>
-				!Enum.TryParse<ScreenId>(screenId.Item1, out _)
+				!Enum.TryParse<ScreenId>(screenId.name, out _)
 			);
 			Violet.LogVerbose($"hasNewScreens={hasNewScreens}");
 			if (!hasNewScreens) { return; }
 			WriteScreenIds(screenIds);
 		}
 
-		public static void Generate(VioletScreen screen) {
-			Generate(new VioletScreen[] {screen});
+		public static void ReplaceScreens(VioletScreen[] screens) {
+			var screenIds = new List<ScreenIdJson>() { new ScreenIdJson("None", 0) };
+			var nextId = 1;
+			foreach (var screen in screens) {
+				var name = VioletScreen.Sanitize(screen.name);
+				var success = Enum.TryParse<ScreenId>(name, out ScreenId screenId);
+				// var id = ScreenId.TryParse
+				screenIds.Add(new ScreenIdJson(
+					name, success ? (int)screenId : nextId++
+				));
+			}
+			WriteScreenIds(screenIds);
 		}
 
-		public static void Generate(VioletScreen[] screens) {
+		public static void AddScreens(VioletScreen[] screens) {
 			var screenStrings = new List<string>(screens.Length);
 			foreach (var screen in screens) {
 				screenStrings.Add(screen.name);
 			}
-			Generate(screenStrings);
-		}
-
-		public static void Generate(List<string> screens) {
-			var newVioletScreens = Filter(screens);
+			var newVioletScreens = Filter(screenStrings);
 			if (newVioletScreens.Count == 0) { return; }
 			AddVioletScreens(newVioletScreens);
 		}
@@ -60,20 +68,19 @@ namespace VioletUI {
 
 		static void AddVioletScreens(List<string> screens) {
 			// always include None as the default ScreenId
-			var screenIds = new List<Tuple<string, int>>() {};
-
+			var screenIds = new List<ScreenIdJson>() { };
 			// write all existing Enum values - note that unused screens
 			// will have to be deleted manually. this is to avoid losing references.
 			foreach (ScreenId screenId in Enum.GetValues(typeof(ScreenId))) {
-				screenIds.Add(new Tuple<string, int>(
+				screenIds.Add(new ScreenIdJson(
 					Enum.GetName(typeof(ScreenId), screenId), (int)screenId
 				));
 			}
+			var nextId = Enum.GetValues(typeof(ScreenId)).Cast<int>().Max() + 1;
 
 			// write new screen names with incrementing ids
-			var nextId = Enum.GetValues(typeof(ScreenId)).Cast<int>().Max() + 1;
 			foreach (var screen in screens) {
-				screenIds.Add(new Tuple<string, int>(
+				screenIds.Add(new ScreenIdJson(
 					screen, nextId++
 				));
 			}
@@ -81,15 +88,13 @@ namespace VioletUI {
 			WriteScreenIds(screenIds);
 		}
 
-		static void WriteScreenIds(List<Tuple<string, int>> screenIds) {
+		static void WriteScreenIds(List<ScreenIdJson> screenIds) {
 			sb.Clear();
-			sb.AppendLine("//Names are automatically added through ScreenIdGenerator.cs, deletions are done manually :)");
-			sb.AppendLine("namespace VioletUI {");
-			sb.AppendLine("\tpublic enum ScreenId {");
+			sb.AppendLine("//Names are automatically added through ScreenIdGenerator.cs, deletions are done manually in Assets/Plugins/VioletUI/ScreenIds.json :)");
+			sb.AppendLine("public enum ScreenId {");
 			foreach (var screenId in screenIds) {
-				sb.AppendLine($"\t\t{screenId.Item1} = {screenId.Item2},");
+				sb.AppendLine($"\t{screenId.name} = {screenId.id},");
 			}
-			sb.AppendLine("\t}");
 			sb.AppendLine("}");
 			File.WriteAllText(packagePath(), sb.ToString());
 			Violet.Log("Regenerating the ScreenId enum, this may take a second to recompile.");
@@ -107,7 +112,7 @@ namespace VioletUI {
 		static string packageBasePath() {
 			foreach (var path in packagePaths) {
 				var paths = Directory.GetDirectories(path, "*violetui*", SearchOption.TopDirectoryOnly);
-				if (paths.Length > 0) { return paths[0];}
+				if (paths.Length > 0) { return paths[0]; }
 			}
 			throw new VioletException("Can't find violetui in Library/PackageCache or Packages. Please report a bug.");
 		}

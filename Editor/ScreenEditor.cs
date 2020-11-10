@@ -22,6 +22,7 @@ namespace VioletUI {
 		}
 
 		static void DrawHierarchyItem(int instanceID, Rect rect) {
+			if (Application.isPlaying) { return; }
 			var gameObject = EditorUtility.InstanceIDToObject(instanceID) as GameObject;
 			if (gameObject == null) { return; }
 
@@ -44,8 +45,8 @@ namespace VioletUI {
 					navigator.AddScreen();
 				}
 			} else if (navigator.transform.childCount > 1) {
-				if (Button(rect, "Save", true)) {
-					navigator.FinishEditing();
+				if (Button(rect, "Lose", true, Color.red)) {
+					navigator.DiscardEdits();
 				}
 			}
 		}
@@ -73,7 +74,7 @@ namespace VioletUI {
 			}
 		}
 
-		static bool Button(Rect rect, string label, bool isActive = false) {
+		static bool Button(Rect rect, string label, bool isActive = false, Color highlightColor = default) {
 			// by default the button is 100% width
 			// we move the left edge to make button fixed width, right aligned
 			var buttonWidth = 36;
@@ -88,7 +89,8 @@ namespace VioletUI {
 
 			// set color to violet if active
 			var originalColor = GUI.color;
-			GUI.color = isActive ? Violet.Hue : originalColor;
+			highlightColor = highlightColor == default ? Violet.Hue : highlightColor;
+			GUI.color = isActive ? highlightColor : originalColor;
 			var response = GUI.Button(rect, new GUIContent(label), style);
 			GUI.color = originalColor;
 

@@ -109,10 +109,19 @@ namespace VioletUI {
 		}
 
 		string prefabPath = "";
+		GameObject prefab;
 
 		public void PackPrefab() {
 			var path = string.IsNullOrEmpty(prefabPath) ? $"Assets/Menus/{name}.prefab" : prefabPath;
 			PrefabUtility.SaveAsPrefabAssetAndConnect(gameObject, path, InteractionMode.AutomatedAction);
+		}
+
+		public void RevertPrefab() {
+			Violet.Log($"Reverting. You will lose work!");
+			var revertedScreen = PrefabUtility.InstantiatePrefab(prefab, transform.parent) as GameObject;
+			revertedScreen.transform.SetSiblingIndex(gameObject.transform.GetSiblingIndex());
+			revertedScreen.SetActive(false);
+			DestroyImmediate(gameObject);
 		}
 
 		public void UnpackPrefab() {
@@ -121,6 +130,7 @@ namespace VioletUI {
 				return;
 			}
 
+			prefab = PrefabUtility.GetCorrespondingObjectFromOriginalSource<GameObject>(gameObject);
 			prefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(gameObject);
 			Violet.LogVerbose($"prefabPath is {prefabPath} for {name}");
 			PrefabUtility.UnpackPrefabInstance(gameObject, PrefabUnpackMode.OutermostRoot, InteractionMode.AutomatedAction);

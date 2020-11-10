@@ -38,14 +38,14 @@ namespace VioletUI {
 		#endregion
 
 		#region local
-		[NonSerialized] Dictionary<ScreenId, VioletScreen> screens = new Dictionary<ScreenId, VioletScreen>();
-		[NonSerialized] ScreenId lastScreen = ScreenId.None;
-		[NonSerialized] ScreenId currentScreen = ScreenId.None;
-		[NonSerialized] ScreenId currentModal = ScreenId.None;
+		[NonSerialized] protected Dictionary<ScreenId, VioletScreen> screens = new Dictionary<ScreenId, VioletScreen>();
+		[NonSerialized] protected ScreenId lastScreen = ScreenId.None;
+		[NonSerialized] protected ScreenId currentScreen = ScreenId.None;
+		[NonSerialized] protected ScreenId currentModal = ScreenId.None;
 		[NonSerialized] CancellationTokenSource canceler = null;
 		#endregion
 
-		void Start() {
+		protected virtual void Start() {
 			if (!Application.isPlaying) { return; }
 			LoadScreens();
 			VisitFirstScreen();
@@ -193,7 +193,7 @@ namespace VioletUI {
 			foreach (VioletScreen screen in GetComponentsInChildren<VioletScreen>(true)) {
 				var isValid = Enum.TryParse(VioletScreen.Sanitize(screen.name), out screenId);
 				if (!isValid) {
-					RegenerateEnums();
+					AddScreens();
 					Violet.LogWarning($"Couldn't find {screen.name}, regenerating. Try pressing play again. ScreenId contains {string.Join(", ", Enum.GetNames(typeof(ScreenId)))}");
 #if UNITY_EDITOR
 					EditorApplication.ExitPlaymode();
@@ -233,7 +233,7 @@ namespace VioletUI {
 				homeScreen = ScreenToScreenId(screen);
 			} catch (VioletEnumException) {
 				Violet.LogWarning($"Couldn't find {screen.name} in the ScreenId enum. This should be fixed if you hit edit again. If not, please report a bug.");
-				RegenerateEnums();
+				AddScreens();
 				return;
 			}
 
@@ -249,6 +249,13 @@ namespace VioletUI {
 			screen.PackPrefab();
 			screen.gameObject.SetActive(false);
 			if (screen == EditingScreen) { EditingScreen = null; };
+			homeScreen = originalHomeScreen;
+		}
+
+		public void DiscardEdits() {
+			if (EditingScreen == null) { EditingScreen = gameObject.GetComponentInChildren<VioletScreen>(); }
+			EditingScreen.RevertPrefab();
+			EditingScreen = null;
 			homeScreen = originalHomeScreen;
 		}
 
@@ -273,7 +280,6 @@ namespace VioletUI {
 			EditingScreen = screen;
 		}
 
-
 		float lastUpdate;
 		int childCount;
 		void Update() {
@@ -284,27 +290,27 @@ namespace VioletUI {
 			childCount = transform.childCount;
 			Violet.LogVerbose($"{name} reloading screens and regenerating enums. childCount={transform.childCount} screensCount={screens.Count}");
 			LoadScreens();
-			RegenerateEnums();
+			AddScreens();
 		}
 
-		[NonSerialized, ShowInInspector] public bool Advanced;
 		[Title("Advanced")]
-		[ShowIf("Advanced"), Button, GUIColor(Violet.r, Violet.g, Violet.b)]
-		void Regenerate() {
-			Violet.LogVerbose($"Regenerating enums...");
-			RegenerateEnums();
-			Violet.LogVerbose($"Reloading screens...");
-			LoadScreens();
-			Violet.LogVerbose($"Done reloading screens.");
+		[Button, GUIColor(Violet.r * 2, 0, 0)]
+		void DeleteUnusedScreens() {
+			ReplaceScreens();
 		}
 
 		// TODO: move all of this to the editor assembly
-		public static Action<VioletScreen[]> WantsRegenerate;
-		void RegenerateEnums() {
-			WantsRegenerate?.Invoke(GetComponentsInChildren<VioletScreen>(true));
+		public static Action<VioletScreen[]> WantsAddScreens;
+		public static Action<VioletScreen[]> WantsReplaceScreens;
+		void AddScreens() {
+			WantsAddScreens?.Invoke(GetComponentsInChildren<VioletScreen>(true));
+		}
+		void ReplaceScreens() {
+			WantsReplaceScreens?.Invoke(GetComponentsInChildren<VioletScreen>(true));
 		}
 #else
-		void RegenerateEnums() {}
+		void AddScreens() {}
+		void ReplaceScreens() {}
 #endif
 	}
 }
