@@ -63,7 +63,7 @@ namespace VioletUI {
 		/// Visit takes a <see cref="ScreenId"/> and transitions the menu to that scene.
 		/// </summary>
 		/// <param name="screenId"></param>
-		public async void Visit(ScreenId screenId) {
+		public async UniTask<bool> Visit(ScreenId screenId) {
 			Violet.LogVerbose($"Visiting {screenId}");
 			if (!screens.ContainsKey(screenId)) {
 				throw new VioletException($"Tried to visit {screenId} but it doesn't exist in the current scene. You'll want to add the {screenId} prefab to this scene or to the MenuBuilder prefab. Or change the Home Screen to the screen you want.");
@@ -99,6 +99,8 @@ namespace VioletUI {
 				canceler.Dispose();
 				canceler = null;
 			}
+
+			return ok;
 		}
 
 		/// <summary>
@@ -107,11 +109,11 @@ namespace VioletUI {
 		/// It fires <see cref="OnModalShow" /> prior to setting the screen to active
 		/// </summary>
 		/// <param name="screenId">Auto-generated id of screen to show as modal</param>
-		public void ShowModal(ScreenId screenId) {
+		public async void ShowModal(ScreenId screenId) {
 			// we have to call this before setting things to active because
 			// it causes all input listeners to unsubscribe
 			OnModalShow?.Invoke(screenId);
-			screens[screenId].gameObject.SetActive(true);
+			await screens[screenId].Show(default);
 			currentModal = screenId;
 		}
 
@@ -120,9 +122,9 @@ namespace VioletUI {
 		///
 		/// It fires <see cref="OnModalHide" /> after setting the modal to inactive.
 		/// </summary>
-		public void HideModal() {
+		public async void HideModal() {
 			if (currentModal == ScreenId.None) { Violet.LogWarning("Called HideModal but there is no current modal - check if HideModal is called twice or called before ShowModal"); return; }
-			screens[currentModal].gameObject.SetActive(false);
+			await screens[currentModal].Hide();
 			OnModalHide?.Invoke(currentModal);
 			currentModal = ScreenId.None;
 		}
@@ -156,7 +158,7 @@ namespace VioletUI {
 			if (!isValid) {
 				throw new VioletException($"Couldn't find a screen with the id {screenIdString.Replace(" ", "")}. Please check the spelling.");
 			}
-			Visit(screenId);
+			_ = Visit(screenId);
 		}
 
 		public void ShowModal(string screenIdString) {
@@ -170,7 +172,10 @@ namespace VioletUI {
 		}
 
 		protected virtual void VisitFirstScreen() {
-			Visit(homeScreen);
+#if !UNITY_EDITOR
+			homeScreen = originalHomeScreen;
+#endif
+			_ = Visit(homeScreen);
 		}
 
 		ScreenId ScreenToScreenId(VioletScreen screen) {
@@ -223,9 +228,9 @@ namespace VioletUI {
 
 		protected virtual void OnScreenAdded(GameObject gameObject) { }
 
+		[SerializeField, HideInInspector] ScreenId originalHomeScreen;
 #if UNITY_EDITOR
 		[HideInInspector] public VioletScreen EditingScreen;
-		[SerializeField, HideInInspector] ScreenId originalHomeScreen;
 
 		public void Edit(VioletScreen screen) {
 			originalHomeScreen = homeScreen;
@@ -255,6 +260,7 @@ namespace VioletUI {
 		public void DiscardEdits() {
 			if (EditingScreen == null) { EditingScreen = gameObject.GetComponentInChildren<VioletScreen>(); }
 			EditingScreen.RevertPrefab();
+			EditingScreen.gameObject.SetActive(false);
 			EditingScreen = null;
 			homeScreen = originalHomeScreen;
 		}
@@ -299,9 +305,15 @@ namespace VioletUI {
 			ReplaceScreens();
 		}
 
+		[Button, GUIColor(Violet.r, Violet.g, Violet.b)]
+		void ReloadScreensFromJson() {
+			WantsReloadScreens?.Invoke();
+		}
+
 		// TODO: move all of this to the editor assembly
 		public static Action<VioletScreen[]> WantsAddScreens;
 		public static Action<VioletScreen[]> WantsReplaceScreens;
+		public static Action WantsReloadScreens;
 		void AddScreens() {
 			WantsAddScreens?.Invoke(GetComponentsInChildren<VioletScreen>(true));
 		}

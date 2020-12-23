@@ -18,6 +18,8 @@ namespace VioletUI {
 			Navigator.WantsAddScreens += AddScreens;
 			Navigator.WantsReplaceScreens -= ReplaceScreens;
 			Navigator.WantsReplaceScreens += ReplaceScreens;
+			Navigator.WantsReloadScreens -= ReloadScreens;
+			Navigator.WantsReloadScreens += ReloadScreens;
 
 			// read screens from .json file in case we lost references
 			var screenIds = ScreenIdSerializer.Deserialize();
@@ -31,13 +33,17 @@ namespace VioletUI {
 			WriteScreenIds(screenIds);
 		}
 
+		public static void ReloadScreens() {
+			var screenIds = ScreenIdSerializer.Deserialize();
+			WriteScreenIds(screenIds);
+		}
+
 		public static void ReplaceScreens(VioletScreen[] screens) {
 			var screenIds = new List<ScreenIdJson>() { new ScreenIdJson("None", 0) };
 			var nextId = 1;
 			foreach (var screen in screens) {
 				var name = VioletScreen.Sanitize(screen.name);
 				var success = Enum.TryParse<ScreenId>(name, out ScreenId screenId);
-				// var id = ScreenId.TryParse
 				screenIds.Add(new ScreenIdJson(
 					name, success ? (int)screenId : nextId++
 				));
