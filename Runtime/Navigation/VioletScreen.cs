@@ -109,7 +109,7 @@ namespace VioletUI {
 		}
 
 		string prefabPath = "";
-		GameObject prefab;
+		UnityEngine.Object prefab;
 
 		public void PackPrefab() {
 			var path = string.IsNullOrEmpty(prefabPath) ? $"Assets/Menus/{name}.prefab" : prefabPath;
@@ -118,10 +118,30 @@ namespace VioletUI {
 
 		public void RevertPrefab() {
 			Violet.Log($"Reverting. You will lose work!");
-			var revertedScreen = PrefabUtility.InstantiatePrefab(prefab, transform.parent) as GameObject;
-			revertedScreen.transform.SetSiblingIndex(gameObject.transform.GetSiblingIndex());
-			revertedScreen.SetActive(false);
-			DestroyImmediate(gameObject);
+			if (prefab != null) {
+				var revertedScreen = PrefabUtility.InstantiatePrefab(prefab, transform.parent) as GameObject;
+				revertedScreen.transform.SetSiblingIndex(gameObject.transform.GetSiblingIndex());
+				revertedScreen.SetActive(false);
+				DestroyImmediate(gameObject);
+			} else {
+				PackPrefab();
+				var path = string.IsNullOrEmpty(prefabPath) ? $"Assets/Menus/{name}.prefab" : prefabPath;
+				UnityEngine.Debug.LogWarning($"@null - reverting prefab shouldn't rely on git in case projects aren't using git");
+				var proc = new System.Diagnostics.Process() {
+					StartInfo = new System.Diagnostics.ProcessStartInfo() {
+						FileName = "git",
+						Arguments = $"checkout \"{path}\"",
+						UseShellExecute = false,
+						RedirectStandardOutput = true,
+						CreateNoWindow = true
+					}
+				};
+				proc.Start();
+				while (!proc.StandardOutput.EndOfStream) {
+					var line = proc.StandardOutput.ReadLine();
+					print($"line={line}");
+				}
+			}
 		}
 
 		public void UnpackPrefab() {

@@ -23,7 +23,7 @@ namespace VioletUI {
 		protected virtual void Render(T item, int index, TState state) {}
 		protected virtual bool IsDirty(T item, T lastItem) { return true; }
 
-		RepeatView<TState, T> parent;
+		protected RepeatView<TState, T> parent;
 
 		internal override void OnShowInternal() {
 			parent = gameObject.GetComponentInParent<RepeatView<TState, T>>();

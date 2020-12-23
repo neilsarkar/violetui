@@ -68,6 +68,43 @@ namespace VioletUI {
 			return true;
 		}
 		internal virtual void RenderInternal(TState state, TState lastState) {
+			CheckGameObject();
+
+			if (lastState != null) {
+				if (!IsDirtyInternal(state, lastState) ) { throw new Bail("IsDirtyInternal=false"); }
+			}
+
+			Render(state);
+		}
+
+		void RenderWrapper(TState state, TState lastState) {
+			// this double try/catch is because of unexpected behavior on il2cpp for stadia
+			// worth testing in isolation to see if we need it.
+#if UNITY_STADIA
+			try {
+				RenderInternal(state, lastState);
+			} catch(NullReferenceException) {
+				UnityEngine.Debug.LogWarning($"Caught a null reference in render. ViewClass={this.GetType().Name}");
+			} catch(Exception e) {
+				// if (e is Bail) { return; }
+				UnityEngine.Debug.LogWarning($"Caught an error in render. ViewClass={this.GetType().Name}");
+			}
+#else
+			try {
+				RenderInternal(state, lastState);
+			} catch(Bail e) {
+				try {
+					Verbose($"{gameObject.name} bailed from render - {e.Message}");
+				} catch (MissingReferenceException) {}
+			} catch(NullReferenceException) {
+				UnityEngine.Debug.LogWarning($"Caught a null reference in render. ViewClass={this.GetType().Name}");
+			} catch(Exception) {
+				UnityEngine.Debug.LogWarning($"Caught an error in render. ViewClass={this.GetType().Name}");
+			}
+#endif
+		}
+
+		void CheckGameObject() {
 			try {
 				if (gameObject == null) {
 					Warn($"RenderInternal | gameObject was null");
@@ -86,27 +123,13 @@ namespace VioletUI {
 #endif
 			} catch(MissingReferenceException) {
 				Warn($"RenderInternal | MissingReferenceException when trying to access gameObject");
-				throw new Bail("gameObject is missing");
+				throw new Bail("MissingReferenceException - gameObject is missing");
 			} catch(InvalidOperationException e) {
 				Warn($"RenderInternal | {e}");
-				throw new Bail("gameObject is missing");
-
-			}
-
-			if (lastState != null) {
-				if (!IsDirtyInternal(state, lastState) ) { throw new Bail("IsDirtyInternal=false"); }
-			}
-
-			Render(state);
-		}
-
-		void RenderWrapper(TState state, TState lastState) {
-			try {
-				RenderInternal(state, lastState);
-			} catch (Bail e) {
-				try {
-					Verbose($"{gameObject.name} bailed from render - {e.Message}");
-				} catch (MissingReferenceException) {}
+				throw new Bail("InvalidOperationException - gameObject is missing");
+			} catch(NullReferenceException e) {
+				Warn($"RenderInternal | gameObject is null");
+				throw new Bail($"NullReferenceException - gameObject is missing");
 			}
 		}
 

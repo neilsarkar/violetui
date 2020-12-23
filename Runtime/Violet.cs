@@ -57,7 +57,7 @@ public static class Violet {
 	/// More saturated color used for log text
 	/// </summary>
 	/// <returns></returns>
-	public static Color BrightHue = new Color(179/255, 0, 1);
+	public static Color BrightHue = new Color(0.701f, 0, 1);
 	/// <summary>
 	/// Wraps `s` in <color> tags for printing to unity console
 	/// </summary>
