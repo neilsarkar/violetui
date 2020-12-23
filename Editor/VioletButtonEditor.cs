@@ -7,10 +7,9 @@ namespace VioletUI {
 	[CustomEditor(typeof(VioletButton))]
 	public class VioletButtonEditor : ButtonEditor {
 		public override void OnInspectorGUI() {
-			VioletButton button = (VioletButton)target;
-
-			button.visitScreen = (ScreenId)EditorGUILayout.EnumPopup("Visit Screen", button.visitScreen);
 			base.OnInspectorGUI();
+			VioletButton button = (VioletButton)target;
+			button.visitScreen = (ScreenId)EditorGUILayout.EnumPopup("Visit Screen", button.visitScreen);
 		}
 	}
 }

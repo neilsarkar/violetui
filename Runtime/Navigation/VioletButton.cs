@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using System;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -8,12 +9,22 @@ namespace VioletUI {
 	[ExecuteAlways]
 	public class VioletButton : UnityEngine.UI.Button {
 		public ScreenId visitScreen;
+		[NonSerialized]
+		public bool isSelected;
 
 		protected Navigator navigator;
 		protected override void Awake() {
 			base.Awake();
 			navigator = gameObject.GetComponentInParent<Navigator>();
 			Violet.LogVerbose($"Button awoken. navigator={navigator}");
+		}
+
+		protected virtual void Submit() {
+			Violet.LogVerbose($"Button {name} clicked");
+			if (visitScreen != ScreenId.None) {
+				Violet.LogVerbose($"Visiting {visitScreen} navigator={navigator}");
+				_ = navigator.Visit(visitScreen);
+			}
 		}
 
 		protected override void OnEnable() {
@@ -24,6 +35,7 @@ namespace VioletUI {
 		protected override void OnDisable() {
 			base.OnDisable();
 			this.onClick.RemoveListener(Submit);
+			isSelected = false;
 		}
 
 		protected override void OnDestroy() {
@@ -31,12 +43,14 @@ namespace VioletUI {
 			this.onClick.RemoveListener(Submit);
 		}
 
-		protected virtual void Submit() {
-			Violet.LogVerbose($"Button {name} clicked");
-			if (visitScreen != ScreenId.None) {
-				Violet.LogVerbose($"Visiting {visitScreen} navigator={navigator}");
-				navigator.Visit(visitScreen);
-			}
+		public override void OnSelect(BaseEventData eventData) {
+			base.OnSelect(eventData);
+			isSelected = true;
+		}
+
+		public override void OnDeselect(BaseEventData eventData) {
+			base.OnDeselect(eventData);
+			isSelected = false;
 		}
 
 #if UNITY_EDITOR
@@ -65,6 +79,8 @@ namespace VioletUI {
 				Violet.LogVerbose($"transform.position={transform.position} topLeft={topLeft} bottomRight={bottomRight} mousePosition={mousePosition}");
 			}
 		}
+
 #endif
 	}
+
 }
