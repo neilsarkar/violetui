@@ -18,5 +18,5 @@ case $REPLY in
 esac
 
 cp -r ./ "$HOME/work/${projectName}/Packages/violetui/"
-rm -rf "$HOME/work/${projectName}/Packages/violetui/"
+rm -rf "$HOME/work/${projectName}/Packages/violetui/.git"
 rm -rf "$HOME/work/${projectName}/Packages/violetui/bash"
