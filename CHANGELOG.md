@@ -1,3 +1,15 @@
+## [0.1.75] - 2020-02-21
+
+### Added
+- IRepeatView
+- X button to discard edits on a menu
+- Navigator.GoBack
+- Navigator.DebugVisit
+- VioletButton.showModal
+- VioletButton.closeModal
+- VioletScreen.isEditing
+
+
 ## [0.1.74] - 2020-11-10
 
 ### Added

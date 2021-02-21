@@ -9,6 +9,9 @@ namespace VioletUI {
 	[ExecuteAlways]
 	public class VioletButton : UnityEngine.UI.Button {
 		public ScreenId visitScreen;
+		public ScreenId showModal;
+		public bool closeModal;
+
 		[NonSerialized]
 		public bool isSelected;
 
@@ -24,6 +27,14 @@ namespace VioletUI {
 			if (visitScreen != ScreenId.None) {
 				Violet.LogVerbose($"Visiting {visitScreen} navigator={navigator}");
 				_ = navigator.Visit(visitScreen);
+			}
+			if (closeModal) {
+				Violet.LogVerbose($"Hiding modal navigator={navigator}");
+				_ = navigator.HideModal();
+			}
+			if (showModal != ScreenId.None) {
+				Violet.LogVerbose($"Showing modal {showModal} navigator={navigator}");
+				navigator.ShowModal(showModal);
 			}
 		}
 

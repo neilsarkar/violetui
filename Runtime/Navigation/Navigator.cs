@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Sirenix.OdinInspector;
 using System.Threading;
-using UniRx.Async;
+using Cysharp.Threading.Tasks;
 using UnityEngine.UI;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -35,9 +35,14 @@ namespace VioletUI {
 
 		public Action<ScreenId> OnModalShow;
 		public Action<ScreenId> OnModalHide;
+
+		public Action<ScreenId> OnEditStart;
+		public Action<ScreenId> OnEditFinish;
 		#endregion
 
 		#region local
+		[NonSerialized] protected Stack<ScreenId> lastScreens = new Stack<ScreenId>();
+		[NonSerialized] protected Stack<ScreenId> modals = new Stack<ScreenId>();
 		[NonSerialized] protected Dictionary<ScreenId, VioletScreen> screens = new Dictionary<ScreenId, VioletScreen>();
 		[NonSerialized] protected ScreenId lastScreen = ScreenId.None;
 		[NonSerialized] protected ScreenId currentScreen = ScreenId.None;
@@ -60,10 +65,33 @@ namespace VioletUI {
 		}
 
 		/// <summary>
+		/// GoBack must be called after at least one Visit call and will revisit the previous screen
+		/// </summary>
+		/// <returns>visit success status</returns>
+		public async UniTask<bool> GoBack() {
+			if (lastScreens.Count == 0) {
+				UnityEngine.Debug.LogError($"Tried to go back but we haven't visited a screen yet.");
+				return false;
+			}
+
+			var screen = lastScreens.Pop();
+			return await Visit(lastScreen, false);
+		}
+
+		public async UniTask<bool> DebugVisit(ScreenId screenId) {
+			if (currentScreen != ScreenId.None) {
+				screens[currentScreen].gameObject.SetActive(false);
+			}
+			await UniTask.DelayFrame(1);
+			screens[screenId].gameObject.SetActive(true);
+			return true;
+		}
+
+		/// <summary>
 		/// Visit takes a <see cref="ScreenId"/> and transitions the menu to that scene.
 		/// </summary>
 		/// <param name="screenId"></param>
-		public async UniTask<bool> Visit(ScreenId screenId) {
+		public async UniTask<bool> Visit(ScreenId screenId, bool isForward = true) {
 			Violet.LogVerbose($"Visiting {screenId}");
 			if (!screens.ContainsKey(screenId)) {
 				throw new VioletException($"Tried to visit {screenId} but it doesn't exist in the current scene. You'll want to add the {screenId} prefab to this scene or to the MenuBuilder prefab. Or change the Home Screen to the screen you want.");
@@ -85,6 +113,9 @@ namespace VioletUI {
 				hidePromise = screens[lastScreen].Hide(canceler.Token).ContinueWith((x) => {
 					ok = x;
 					OnDidLeave?.Invoke(lastScreen);
+					if (isForward) {
+						lastScreens.Push(lastScreen);
+					}
 				});
 			}
 			await hidePromise;
@@ -104,9 +135,9 @@ namespace VioletUI {
 		}
 
 		/// <summary>
-		/// Show another screen in addition to the current screen.
+		/// Show another screen in addition to the current screen and disable input listeners on the current screen.
 		///
-		/// It fires <see cref="OnModalShow" /> prior to setting the screen to active
+		/// It fires <see cref="OnModalShow" /> prior to setting the screen to active.
 		/// </summary>
 		/// <param name="screenId">Auto-generated id of screen to show as modal</param>
 		public async void ShowModal(ScreenId screenId) {
@@ -114,27 +145,45 @@ namespace VioletUI {
 			// it causes all input listeners to unsubscribe
 			OnModalShow?.Invoke(screenId);
 			await screens[screenId].Show(default);
+			modals.Push(screenId);
 			currentModal = screenId;
 		}
 
 		/// <summary>
-		/// Hide the currently shown modal.
+		/// Hide the currently shown modal and re-enables input listeners on the current screen
 		///
 		/// It fires <see cref="OnModalHide" /> after setting the modal to inactive.
 		/// </summary>
-		public async void HideModal() {
-			if (currentModal == ScreenId.None) { Violet.LogWarning("Called HideModal but there is no current modal - check if HideModal is called twice or called before ShowModal"); return; }
-			await screens[currentModal].Hide();
-			OnModalHide?.Invoke(currentModal);
-			currentModal = ScreenId.None;
+		public async virtual UniTask HideModal() {
+			if (currentModal == ScreenId.None) { return; }
+			var screenId = modals.Pop();
+			await screens[screenId].Hide();
+			currentModal = modals.Count > 0 ? modals.Peek() : ScreenId.None;
+			OnModalHide?.Invoke(screenId);
+		}
+
+		public async virtual UniTask CloseAllModals() {
+			int attempts = 10;
+			while (currentModal != ScreenId.None) {
+				if (attempts-- < 0) {
+					throw new Exception($"Couldn't CloseAllModals. Stuck on {currentModal}");
+				}
+				await HideModal();
+			}
 		}
 
 		/// <summary>
-		/// Show an overlay screen in addition to the current screen. Triggers no events.
+		/// Show an overlay screen in addition to the current screen. Triggers no events and allows input on main screen.
 		/// </summary>
 		/// <param name="screenId">id of screen to set active</param>
 		public void ShowOverlay(ScreenId screenId) {
-			screens[screenId].gameObject.SetActive(true);
+			try {
+				screens[screenId].gameObject.SetActive(true);
+			} catch(KeyNotFoundException) {
+				// when editing screens in editor the screens dictionary may be empty
+				LoadScreens();
+				screens[screenId].gameObject.SetActive(true);
+			}
 		}
 
 		/// <summary>
@@ -142,7 +191,13 @@ namespace VioletUI {
 		/// </summary>
 		/// <param name="screenId">id of screen to set inactive</param>
 		public void HideOverlay(ScreenId screenId) {
-			screens[screenId].gameObject.SetActive(false);
+			try {
+				screens[screenId].gameObject.SetActive(false);
+			} catch(KeyNotFoundException) {
+				// when editing screens in editor the screens dictionary may be empty
+				LoadScreens();
+				screens[screenId].gameObject.SetActive(false);
+			}
 		}
 
 		// Sigh.
@@ -220,7 +275,12 @@ namespace VioletUI {
 				}
 
 				screens[screenId] = screen;
+
+#if UNITY_EDITOR
+				screen.gameObject.SetActive(screen == EditingScreen);
+#else
 				screen.gameObject.SetActive(false);
+#endif
 			}
 
 			OnReady?.Invoke();
@@ -246,6 +306,7 @@ namespace VioletUI {
 			screen.gameObject.SetActive(true);
 			EditingScreen = screen;
 			currentScreen = ScreenToScreenId(screen);
+			OnEditStart?.Invoke(currentScreen);
 		}
 
 		public void FinishEditing(VioletScreen screen = null) {
@@ -255,12 +316,14 @@ namespace VioletUI {
 			screen.gameObject.SetActive(false);
 			if (screen == EditingScreen) { EditingScreen = null; };
 			homeScreen = originalHomeScreen;
+			OnEditFinish?.Invoke(ScreenToScreenId(screen));
 		}
 
 		public void DiscardEdits() {
 			if (EditingScreen == null) { EditingScreen = gameObject.GetComponentInChildren<VioletScreen>(); }
-			EditingScreen.RevertPrefab();
+			OnEditFinish?.Invoke(ScreenToScreenId(EditingScreen));
 			EditingScreen.gameObject.SetActive(false);
+			EditingScreen.RevertPrefab();
 			EditingScreen = null;
 			homeScreen = originalHomeScreen;
 		}

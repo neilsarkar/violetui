@@ -67,4 +67,13 @@ public static class Violet {
 		return $"<color=#{hex}>{s}</color>";
 	}
 
+	public static LogLevel logLevel;
+
+	public enum LogLevel {
+		None,
+		Debug,
+		Info,
+		Warning,
+		Error
+	}
 }

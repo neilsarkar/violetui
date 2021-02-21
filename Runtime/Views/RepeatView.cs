@@ -7,8 +7,10 @@ using UnityEditor;
 #endif
 
 namespace VioletUI {
-	public abstract class RepeatView<TState, T> : View<TState> where TState : class, IState {
-		public GameObject ViewPrefab;
+	public abstract class RepeatView<TState, T> : View<TState>, IRepeatView where TState : class, IState {
+		[SerializeField]
+		GameObject viewPrefab;
+		public GameObject ViewPrefab => viewPrefab;
 
 		public abstract IList<T> Items { get; }
 		public abstract IList<T> LastItems { get; }
@@ -17,40 +19,82 @@ namespace VioletUI {
 			base.RenderInternal(state, lastState);
 
 			if (!IsDirtyInternal(state, lastState)) { return; }
-			RenderChildren();
+			RenderChildrenInternal();
 		}
 
 		internal override bool IsDirtyInternal(TState state, TState lastState) {
-			base.IsDirtyInternal(state, lastState);
-			if (lastState != null && Items.Count == LastItems?.Count) { throw new Bail($"No change in item count - {Items.Count}=={LastItems?.Count} "); }
-			if (ViewPrefab == null) { throw new Bail($"ViewPrefab is null"); }
+			if (lastState != null) {
+				base.IsDirtyInternal(state, lastState);
+				if (Items.Count == transform.childCount) {
+					throw new Bail($"No change in item count - {Items.Count}=={LastItems?.Count} ");
+				}
+			}
+			if (ViewPrefab == null) {
+				print($"ViewPrefab b null count view={GetType().Name}");
+				throw new Bail($"ViewPrefab is null");
+			}
 			return true;
 		}
 
-		void RenderChildren() {
-			// can't use foreach or for loop because it updates the array in place
-			try {
-				while(transform.childCount > 0) {
-					DestroyImmediate(transform.GetChild(0).gameObject);
+		internal void RenderChildrenInternal() {
+			var childCount = transform.childCount;
+			for (int i = childCount - 1; i >= Items.Count; i--) {
+				if (Application.isPlaying) {
+					Destroy(transform.GetChild(i).gameObject);
+				} else {
+					DestroyImmediate(transform.GetChild(i).gameObject);
 				}
-			} catch (InvalidOperationException) {
-				return;
 			}
 
-
-			for (int i = 0; i < Items.Count; i++) {
-				var child = CreateChild(i);
-				var view = child.GetComponent<ChildView<TState, T>>();
-				if (view == null) {continue;}
-				try {
-					view.RenderInternal(State, default(TState));
-				} catch (Bail) {}
+			var diff = Items.Count - childCount;
+			for (int i = 0; i < Math.Min(childCount, childCount - diff); i++) {
+				if (!transform.GetChild(i).gameObject.activeSelf) {
+					transform.GetChild(i).gameObject.SetActive(true);
+				}
 			}
 
+			for (int i = 0; i < Items.Count - childCount; i++) {
+				CreateChild(i);
+			}
 		}
 
 		GameObject CreateChild(int index) {
 			return Instantiate(ViewPrefab, transform);
+		}
+
+		public void RegenerateChildren() {
+#if UNITY_EDITOR
+			Transform t = transform;
+			VioletScreen screen = default;
+			while (t != null) {
+				screen = t.GetComponent<VioletScreen>();
+				if (screen != null) { break; }
+				t = t.parent;
+			}
+
+			if (screen == null) {
+				Violet.LogError($"Can't regenerate children bc screen is null. name={gameObject.name} parent={transform.parent}");
+				return;
+			}
+
+			var wasEditing = screen.isEditing;
+			if (wasEditing) {
+				screen.UnpackPrefab();
+			}
+			for (int i = transform.childCount - 1; i >= 0; i--) {
+				DestroyImmediate(transform.GetChild(i).gameObject);
+			}
+
+			for (int i = 0; i < Items.Count; i++) {
+				CreateChild(i);
+			}
+
+			if (wasEditing) {
+				screen.PackPrefab();
+			}
+#else
+			throw new NotImplementedException($"RegenerateChildren not available in builds");
+#endif
 		}
 	}
 }

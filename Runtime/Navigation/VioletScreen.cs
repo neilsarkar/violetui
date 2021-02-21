@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using System.Threading.Tasks;
 using System.Threading;
-using UniRx.Async;
+using Cysharp.Threading.Tasks;
 using Sirenix.OdinInspector;
 using System.Collections.Generic;
 using UnityEngine.Events;
@@ -110,14 +110,16 @@ namespace VioletUI {
 
 		string prefabPath = "";
 		UnityEngine.Object prefab;
-
+		public bool isEditing;
 		public void PackPrefab() {
 			var path = string.IsNullOrEmpty(prefabPath) ? $"Assets/Menus/{name}.prefab" : prefabPath;
+			isEditing = true;
 			PrefabUtility.SaveAsPrefabAssetAndConnect(gameObject, path, InteractionMode.AutomatedAction);
 		}
 
 		public void RevertPrefab() {
 			Violet.Log($"Reverting. You will lose work!");
+			isEditing = false;
 			if (prefab != null) {
 				var revertedScreen = PrefabUtility.InstantiatePrefab(prefab, transform.parent) as GameObject;
 				revertedScreen.transform.SetSiblingIndex(gameObject.transform.GetSiblingIndex());
@@ -158,7 +160,7 @@ namespace VioletUI {
 
 		void EditorSceneManager_sceneSaved(Scene scene) {
 			try {
-				if (!gameObject.activeSelf) {return;}
+				if (!gameObject.activeSelf || gameObject.scene.name != scene.name) {return;}
 				PackPrefab();
 				UnpackPrefab();
 				Violet.Log($"Saved {name} prefab");

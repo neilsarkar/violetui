@@ -21,24 +21,43 @@ namespace VioletUI {
 		/// OnShow is called when the gameObject becomes active in editor or playmode, prior to first Render.
 		/// </summary>
 		protected virtual void OnShow() { }
+
 		/// <summary>
 		/// OnHide is called when the gameObject becomes inactive in editor or playmode, after last Render.
 		/// </summary>
 		protected virtual void OnHide() { }
-		/// <summary>
-		/// IsDirty is used to short circuit expensive render calls by focusing on parts of the state you care about.
-		///
-		/// return `false` to avoid rendering
-		/// </summary>
-		/// <param name="state">current value of state</param>
-		/// <param name="lastState">value of state prior to the action that triggered this render call</param>
-		/// <returns></returns>
-		protected virtual bool IsDirty(TState state, TState lastState) { return true; }
+
 		/// <summary>
 		/// Override Render to update referenced gameobjects with fields of the changed state.
 		/// </summary>
 		/// <param name="state"></param>
 		protected virtual void Render(TState state) { }
+
+		/// <summary>
+		/// IsDirty is used to short circuit expensive render calls by focusing on parts of the state you care about.
+		/// Do not call base.IsDirty as this only contains a warning about IsDirty not being implemented.
+		///
+		/// return `false` to avoid rendering after the first render on gameObject enable
+		/// </summary>
+		/// <param name="state">current value of state</param>
+		/// <param name="lastState">value of state prior to the action that triggered this render call</param>
+		/// <returns></returns>
+		bool warned = false;
+		protected virtual bool IsDirty(TState state, TState lastState) {
+#if UNITY_EDITOR
+			if (!warned) {
+				warned = true;
+				try {
+					UnityEngine.Debug.LogWarning($"{this.GetType().Name} has no isDirty method set. This is fine for prototyping but will cause performance issues in production.");
+				} catch(MissingReferenceException) {
+					return false;
+				} catch(NullReferenceException) {
+					return false;
+				}
+			}
+#endif
+			return true;
+		}
 
 		/// <summary>
 		/// Dispatcher allows you to send Actions that change the State
@@ -84,22 +103,17 @@ namespace VioletUI {
 			try {
 				RenderInternal(state, lastState);
 			} catch(NullReferenceException) {
-				UnityEngine.Debug.LogWarning($"Caught a null reference in render. ViewClass={this.GetType().Name}");
+				UnityEngine.Debug.LogError($"Caught a null reference in render. ViewClass={this.GetType().Name}");
 			} catch(Exception e) {
-				// if (e is Bail) { return; }
-				UnityEngine.Debug.LogWarning($"Caught an error in render. ViewClass={this.GetType().Name}");
+				if (e is Bail) { return; }
+				UnityEngine.Debug.LogError($"Caught an error in render. ViewClass={this.GetType().Name}");
 			}
 #else
 			try {
 				RenderInternal(state, lastState);
 			} catch(Bail e) {
-				try {
-					Verbose($"{gameObject.name} bailed from render - {e.Message}");
-				} catch (MissingReferenceException) {}
-			} catch(NullReferenceException) {
-				UnityEngine.Debug.LogWarning($"Caught a null reference in render. ViewClass={this.GetType().Name}");
-			} catch(Exception) {
-				UnityEngine.Debug.LogWarning($"Caught an error in render. ViewClass={this.GetType().Name}");
+			} catch(Exception e) {
+				UnityEngine.Debug.LogException(e);
 			}
 #endif
 		}
@@ -141,8 +155,11 @@ namespace VioletUI {
 			RenderWrapper(State, ForceRender ? default(TState) : LastState);
 		}
 
-		void OnEnable() {
-			if (State == null) { if (Application.isPlaying) { Warn($"State is null in {name} OnEnable"); } return; }
+		protected virtual void OnEnable() {
+			if (State == null) {
+				if (Application.isPlaying) { UnityEngine.Debug.LogWarning($"State is null in {name} OnEnable"); }
+				return;
+			}
 			State.OnChange -= State_OnChange;
 			State.OnChange += State_OnChange;
 #if UNITY_EDITOR
@@ -154,26 +171,26 @@ namespace VioletUI {
 			RenderWrapper(State, default(TState));
 		}
 
-		void OnDisable() {
+		protected virtual void OnDisable() {
 			if (State == null) { if (Application.isPlaying) { Warn($"State is null in {name} OnDisable"); } return; }
-			State.OnChange -= State_OnChange;
 #if UNITY_EDITOR
 			EditorApplication.update -= EditorUpdate;
 #endif
+			State.OnChange -= State_OnChange;
 			OnHideInternal();
 			OnHide();
 		}
 
 		void Warn(string msg) {
-#if VIOLETDEV
-			Violet.LogWarning(msg);
-#endif
+			if (Violet.logLevel != Violet.LogLevel.None && Violet.logLevel <= Violet.LogLevel.Warning) {
+				Violet.LogWarning($"{this.GetType().Name} - {msg}");
+			}
 		}
 
 		void Verbose(string msg) {
-#if VIOLET_VERBOSE
-			Violet.LogVerbose(msg);
-#endif
+			if (Violet.logLevel != Violet.LogLevel.None && Violet.logLevel <= Violet.LogLevel.Debug) {
+				Violet.LogVerbose(msg);
+			}
 		}
 
 #if UNITY_EDITOR
@@ -186,6 +203,7 @@ namespace VioletUI {
 				EditorApplication.update -= EditorUpdate;
 				return;
 			}
+
 			State.OnChange -= State_OnChange;
 			State.OnChange += State_OnChange;
 		}

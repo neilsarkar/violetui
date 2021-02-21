@@ -11,6 +11,9 @@ namespace VioletUI {
 	[InitializeOnLoad]
 	public static class ScreenEditor {
 
+		public static Color RedHue = new Color(1f, 0.2f, 0.2f);
+		public static Color GreenHue = new Color(0.2f, 1f, 0.2f);
+
 		//where to show the buttons
 		private static GUIStyle singleStyle, leftStyle, rightStyle;
 
@@ -25,6 +28,7 @@ namespace VioletUI {
 			if (Application.isPlaying) { return; }
 			var gameObject = EditorUtility.InstanceIDToObject(instanceID) as GameObject;
 			if (gameObject == null) { return; }
+			if (gameObject.scene == null) { return; }
 
 			navigator = gameObject.GetComponent<Navigator>();
 			if (navigator != null) {
@@ -41,12 +45,8 @@ namespace VioletUI {
 
 		static void DrawNavigator(Navigator navigator, Rect rect) {
 			if (navigator.EditingScreen == null) {
-				if (Button(rect, "Add")) {
+				if (Button(rect, 36, "New")) {
 					navigator.AddScreen();
-				}
-			} else if (navigator.transform.childCount > 1) {
-				if (Button(rect, "Lose", true, Color.red)) {
-					navigator.DiscardEdits();
 				}
 			}
 		}
@@ -62,7 +62,7 @@ namespace VioletUI {
 
 			if (navigator.EditingScreen != null && screen != navigator.EditingScreen) { return; }
 
-			if (Button(rect, screen.isActiveAndEnabled ? "Save" : "Edit", screen.isActiveAndEnabled)) {
+			if (Button(rect, 36, screen.isActiveAndEnabled ? "Save" : "Edit", screen.isActiveAndEnabled)) {
 				if (navigator == null) {
 					throw new VioletException($"Tried to edit {screen.name} without a Navigator. Try adding a Navigator component to {screen.transform.parent.name}");
 				}
@@ -72,12 +72,21 @@ namespace VioletUI {
 					navigator.Edit(screen);
 				}
 			}
+			if (screen.isActiveAndEnabled) {
+				if (Button(rect, 18, "X", screen.isActiveAndEnabled, RedHue, -50)) {
+					if (navigator == null) {
+						throw new VioletException($"Can't find navigator in scene");
+					}
+					navigator.DiscardEdits();
+				}
+			}
+
 		}
 
-		static bool Button(Rect rect, string label, bool isActive = false, Color highlightColor = default) {
+		static bool Button(Rect rect, int buttonWidth, string label, bool isActive = false, Color highlightColor = default, int xOffset = 0) {
 			// by default the button is 100% width
 			// we move the left edge to make button fixed width, right aligned
-			var buttonWidth = 36;
+			rect.xMax = rect.xMax + xOffset;
 			rect.xMin = rect.xMax - buttonWidth;
 
 			// extend unity mini button style with small tweaks
@@ -96,5 +105,6 @@ namespace VioletUI {
 
 			return response;
 		}
+
 	}
 }

@@ -10,6 +10,8 @@ namespace VioletUI {
 			base.OnInspectorGUI();
 			VioletButton button = (VioletButton)target;
 			button.visitScreen = (ScreenId)EditorGUILayout.EnumPopup("Visit Screen", button.visitScreen);
+			button.showModal = (ScreenId)EditorGUILayout.EnumPopup("Show Modal", button.showModal);
+			button.closeModal = (bool)EditorGUILayout.Toggle("Close Modal", button.closeModal);
 		}
 	}
 }
