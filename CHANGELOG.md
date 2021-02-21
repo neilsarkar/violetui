@@ -9,7 +9,6 @@
 - VioletButton.closeModal
 - VioletScreen.isEditing
 
-
 ## [0.1.74] - 2020-11-10
 
 ### Added
