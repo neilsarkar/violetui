@@ -3,7 +3,7 @@
 printf 'Copy code from sample project? [y/N]: '
 read answer
 if [ "$answer" = "y" ]; then
-	cp -r ~/work/King_of_the_Hat/Packages/violetui/ .
+	./pull.bash
 fi
 
 tee Runtime/Navigation/ScreenId.cs &> /dev/null <<EOF
