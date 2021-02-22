@@ -1,3 +1,7 @@
+#!/bin/bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+ROOT="$DIR/.."
+
 echo "Choose a project:"
 echo "[1] king_of_the_hat"
 echo "[2] Package Party"

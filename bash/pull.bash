@@ -1,3 +1,7 @@
+#!/bin/bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+ROOT="$DIR/.."
+
 echo "Choose a project:"
 echo "[1] king_of_the_hat"
 echo "[2] Package Party"
@@ -17,7 +21,7 @@ case $REPLY in
 		;;
 esac
 
-cp -r "$HOME/work/${projectName}/Packages/violetui/" .
+cp -r "$HOME/work/${projectName}/Packages/violetui/" $ROOT
 tee Runtime/Navigation/ScreenId.cs &> /dev/null <<EOF
 // Names are automatically added through ScreenIdGenerator.cs, deletions are done manually :)
 public enum ScreenId {
