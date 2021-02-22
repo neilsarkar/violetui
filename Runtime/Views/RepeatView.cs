@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Dispatch;
 using UnityEngine;
 using System.Collections;
+using Cysharp.Threading.Tasks;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -67,15 +68,11 @@ namespace VioletUI {
 		/// Call RegenerateChildren in editor only to regenerate the children
 		/// when the child prefab is updated
 		/// </summary>
-		public void RegenerateChildren() {
-			StartCoroutine(RegenerateChildrenNextFrame());
-		}
-
-		IEnumerator RegenerateChildrenNextFrame() {
+		public async UniTask RegenerateChildren() {
+#if UNITY_EDITOR
 			// we have to wait a frame because PrefabListener is run as the asset is saving
 			// and the menu prefab won't be updated until the next frame
-#if UNITY_EDITOR
-			yield return null;
+			await UniTask.DelayFrame(1);
 			Transform t = transform;
 			VioletScreen screen = default;
 			while (t != null) {
@@ -86,7 +83,7 @@ namespace VioletUI {
 
 			if (screen == null) {
 				Violet.LogError($"Can't regenerate children bc screen is null. name={gameObject.name} parent={transform.parent}");
-				yield break;
+				return;
 			}
 
 			var wasEditing = screen.isEditing;

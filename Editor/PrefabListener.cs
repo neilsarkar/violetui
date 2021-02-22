@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -36,11 +37,12 @@ namespace VioletUI {
 				if (processed.Contains(go.gameObject)) { continue; }
 
 				if (PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(repeatView.ViewPrefab) == prefabPath) {
-					repeatView.RegenerateChildren();
+					_ = repeatView.RegenerateChildren();
 					processed.Add(go.gameObject);
 					Violet.Log($"Updated RepeatView on {go.gameObject.name}");
 				}
 			}
 		}
+
 	}
 }

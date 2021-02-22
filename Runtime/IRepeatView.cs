@@ -1,6 +1,7 @@
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 public interface IRepeatView {
-	void RegenerateChildren();
+	UniTask RegenerateChildren();
 	GameObject ViewPrefab { get; }
 }
