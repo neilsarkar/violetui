@@ -111,7 +111,7 @@ namespace VioletUI {
 #else
 			try {
 				RenderInternal(state, lastState);
-			} catch(Bail e) {
+			} catch(Bail) {
 			} catch(Exception e) {
 				UnityEngine.Debug.LogException(e);
 			}

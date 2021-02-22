@@ -110,11 +110,13 @@ namespace VioletUI {
 
 		[SerializeField, HideInInspector]
 		string prefabPath = "";
-		UnityEngine.Object prefab;
+		[SerializeField, HideInInspector]
 		public bool isEditing;
+		UnityEngine.Object prefab;
+
 		public void PackPrefab() {
 			var path = string.IsNullOrEmpty(prefabPath) ? $"Assets/Menus/{name}.prefab" : prefabPath;
-			isEditing = true;
+			isEditing = false;
 			PrefabUtility.SaveAsPrefabAssetAndConnect(gameObject, path, InteractionMode.AutomatedAction);
 		}
 
@@ -150,6 +152,7 @@ namespace VioletUI {
 			prefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(gameObject);
 			Violet.LogVerbose($"prefabPath is {prefabPath} for {name}");
 			PrefabUtility.UnpackPrefabInstance(gameObject, PrefabUnpackMode.OutermostRoot, InteractionMode.AutomatedAction);
+			isEditing = true;
 		}
 
 		void EditorSceneManager_sceneSaved(Scene scene) {
