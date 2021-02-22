@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Dispatch;
 using UnityEngine;
+using System.Collections;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -62,8 +63,19 @@ namespace VioletUI {
 			return Instantiate(ViewPrefab, transform);
 		}
 
+		/// <summary>
+		/// Call RegenerateChildren in editor only to regenerate the children
+		/// when the child prefab is updated
+		/// </summary>
 		public void RegenerateChildren() {
+			StartCoroutine(RegenerateChildrenNextFrame());
+		}
+
+		IEnumerator RegenerateChildrenNextFrame() {
+			// we have to wait a frame because PrefabListener is run as the asset is saving
+			// and the menu prefab won't be updated until the next frame
 #if UNITY_EDITOR
+			yield return null;
 			Transform t = transform;
 			VioletScreen screen = default;
 			while (t != null) {
@@ -74,11 +86,11 @@ namespace VioletUI {
 
 			if (screen == null) {
 				Violet.LogError($"Can't regenerate children bc screen is null. name={gameObject.name} parent={transform.parent}");
-				return;
+				yield break;
 			}
 
 			var wasEditing = screen.isEditing;
-			if (wasEditing) {
+			if (!wasEditing) {
 				screen.UnpackPrefab();
 			}
 			for (int i = transform.childCount - 1; i >= 0; i--) {
@@ -89,7 +101,7 @@ namespace VioletUI {
 				CreateChild(i);
 			}
 
-			if (wasEditing) {
+			if (!wasEditing) {
 				screen.PackPrefab();
 			}
 #else
